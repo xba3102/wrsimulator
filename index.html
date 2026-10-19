@@ -505,7 +505,7 @@
             // CG & CP Calculation
             // Anggap roket 30cm (0.3m). Hidung = 0.3m, Ekor = 0.0m
             const cgPos = ((bottleMass * 0.15) + (clayMass * 0.3) + (finMass * 0.0)) / dryMass;
-            const cpPos = 0.15 - (finAreaCM2 * 0.0005); // Sirip besar tolak CP ke belakang (ekor)
+            const cpPos = 0.15 - (finAreaCM2 * 0.0003); // Sirip besar tolak CP ke belakang (ekor)
             const isStable = cgPos > cpPos; // Stabil jika CG di depan CP
             
             // Thrust
@@ -515,14 +515,16 @@
             const massFlow = nozzleArea * Math.sqrt(2 * pPascal * 1000);
             const tDuration = massFlow > 0 ? waterMass / massFlow : 0;
             
-            let nozzleEff = 0.85 - (Math.abs(nozzleMM - 11) * 0.02);
+            let nozzleEff = 0.90 - (Math.abs(nozzleMM - 9.0) * 0.03);
             if(nozzleEff < 0.4) nozzleEff = 0.4;
             
-            const totalImpulse = thrust * tDuration * nozzleEff * 1.4; // 1.4 accounts for air thrust phase
-            const avgMass = dryMass + (waterMass/2);
+            // NASA Calibration: 50-55psi + 500ml + 45deg + 50g clay -> ~60m. 60psi -> 70-80m.
+            const calibrationFactor = 1.95; 
+            const totalImpulse = thrust * tDuration * nozzleEff * calibrationFactor; 
+            const avgMass = dryMass + (waterMass/3); // Jisim efektif semasa pecutan
             let vInit = avgMass > 0 ? (totalImpulse / avgMass) : 0;
             
-            if (waterML < 50 || waterML > 1400) vInit *= 0.1; // Kegagalan ekstrem
+            if (waterML < 300 || waterML > 900) vInit *= 0.6; // Penalti berat jika nisbah air tidak logik
             vInit -= (railLen * 0.2); // Geseran rail
 
             const rad = angleDeg * Math.PI / 180;
@@ -539,7 +541,7 @@
                 cp: cpPos,
                 para: paraSize,
                 paraDeployed: false,
-                crossArea: 0.0063 + (finAreaCM2 * 0.0001) // Area for drag
+                crossArea: 0.005 + (finAreaCM2 * 0.00003) // Seretan (drag) yang dikalibrasi semula
             };
             
             const wRad = (windDir - 90) * (Math.PI / 180);
@@ -710,13 +712,16 @@
             
             const aiText = document.getElementById('aiFeedback');
             if (!rocket.isStable) {
-                aiText.innerHTML = "AI Analisis: ROKET TIDAK STABIL! Pusat Graviti (Hijau) berada di belakang Pusat Tekanan (Merah). Tambah berat tanah liat di muncung roket untuk menstabilkannya.";
+                aiText.innerHTML = "AI Analisis: ROKET TIDAK STABIL! Tambah plastisin (tanah liat) sekitar 40g-60g di hidung untuk mengalihkan Pusat Graviti (CG) ke hadapan dan mengelakkan roket berpusing di udara.";
                 aiText.className = "text-sm text-red-400 font-bold";
             } else if (errMeters <= 2.0) {
                 aiText.innerHTML = "AI Analisis (NASA Calibrated): Sempurna! Mengikut piawaian NASA, konfigurasi ini mencatat jarak ketepatan cemerlang. WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
                 aiText.className = "text-sm text-emerald-400 font-bold";
+            } else if (dist < currentTarget) {
+                aiText.innerHTML = "AI Analisis: Roket jatuh terkurang jarak. Naikkan tekanan udara (PSI) secara perlahan, ATAU kurangkan sedikit air kepada 450mL.";
+                aiText.className = "text-sm text-yellow-400";
             } else {
-                aiText.innerHTML = "AI Analisis: Pelancaran stabil tetapi tersasar. Ubah suai tekanan (PSI), isipadu air (1/3 botol ideal), atau diameter Nozzle berhampiran 9mm-11mm.";
+                aiText.innerHTML = "AI Analisis: Roket terlajak melepasi sasaran! Kurangkan tekanan udara (contoh: 45-48 PSI), ATAU rendahkan sudut pelancaran kepada 40°.";
                 aiText.className = "text-sm text-yellow-400";
             }
         }
