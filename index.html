@@ -258,11 +258,20 @@
         let db, auth, currentUser;
         let currentTarget = 60; // Sasaran dinamik
         let lastLaunchResult = null; // Menyimpan rekod pelancaran terakhir pemain
+        let offlineScores = []; // Menampung data jika tiada pangkalan data awan
 
-        // Firebase Init - menggunakan global var jika ada
+        // Firebase Init
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'wr-simulator-pro';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // Placeholder: Dalam environment sebenar, ini diisi oleh sistem backend
+        
+        // Menggunakan konfigurasi Firebase khusus anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1YYejO0WLBKF-9bZeGd7OMEtYeEb0evQ",
+            authDomain: "wrsimulator-2f08c.firebaseapp.com",
+            projectId: "wrsimulator-2f08c",
+            storageBucket: "wrsimulator-2f08c.firebasestorage.app",
+            messagingSenderId: "918313160000",
+            appId: "1:918313160000:web:d69f9bdad2e5afa5bbbea5",
+            measurementId: "G-ZGPTJHPLTD"
         };
 
         try {
@@ -271,13 +280,12 @@
             db = getFirestore(app);
             initFirebase();
         } catch (e) {
-            console.error("Firebase tidak dapat dimulakan:", e);
-            document.getElementById('leaderboardBody').innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500">Mod Luar Talian (Tiada pangkalan data)</td></tr>`;
+            console.warn("Firebase tidak dimulakan, beralih ke Mod Luar Talian.", e);
+            renderLeaderboardLocal();
         }
 
         async function initFirebase() {
             try {
-                // RULE 3: Auth mesti dibuat sebelum query
                 if (typeof __initial_auth_token !== 'undefined') {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -286,31 +294,54 @@
                 currentUser = auth.currentUser;
                 loadLeaderboard();
             } catch (error) {
-                console.error("Ralat log masuk:", error);
+                console.error("Ralat log masuk awanama:", error);
+                renderLeaderboardLocal();
+            }
+        }
+
+        // Dipanggil apabila pemain menukar sasaran jarak (slider)
+        function updateLeaderboardUI() {
+            const titleEl = document.querySelector('h3.text-amber-400');
+            if (titleEl) titleEl.innerHTML = `🏆 Carta Top 10 (Kategori: ${currentTarget}m)`;
+            
+            if (currentUser && db) {
+                loadLeaderboard();
+            } else {
+                renderLeaderboardLocal();
             }
         }
 
         function loadLeaderboard() {
-            if (!currentUser || !db) return;
+            if (!currentUser || !db) {
+                renderLeaderboardLocal();
+                return;
+            }
             
-            // RULE 1: Laluan path MESTI ketat
             const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
-            
-            // RULE 2: Tiada orderBy, where, atau limit.
             onSnapshot(lbRef, (snapshot) => {
                 let scores = [];
                 snapshot.forEach(doc => {
                     scores.push({ id: doc.id, ...doc.data() });
                 });
 
-                // Proses Sorting & Limit di dalam memori (JavaScript)
-                scores.sort((a, b) => a.errorDist - b.errorDist); // Paling kecil ralat (paling tepat) di atas
-                const top10 = scores.slice(0, 10);
+                // Tapisan (filter) mengikut sasaran jarak yang sedang aktif
+                let filteredScores = scores.filter(s => s.targetDist === currentTarget);
+                filteredScores.sort((a, b) => a.errorDist - b.errorDist);
+                const top10 = filteredScores.slice(0, 10);
                 
                 renderLeaderboard(top10);
             }, (error) => {
                 console.error("Ralat mengambil carta:", error);
+                renderLeaderboardLocal();
             });
+        }
+
+        // Fungsi khas untuk Mod Luar Talian
+        function renderLeaderboardLocal() {
+            let filteredScores = offlineScores.filter(s => s.targetDist === currentTarget);
+            filteredScores.sort((a, b) => a.errorDist - b.errorDist);
+            const top10 = filteredScores.slice(0, 10);
+            renderLeaderboard(top10);
         }
 
         function renderLeaderboard(scores) {
@@ -318,17 +349,20 @@
             tbody.innerHTML = '';
             
             if (scores.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada rekod. Jadilah yang pertama!</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada rekod untuk jarak ${currentTarget}m. ${(!db ? '(Mod Offline)' : '')}</td></tr>`;
                 return;
             }
 
             scores.forEach((s, index) => {
                 let badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
+                // Convert to cm (darab 100)
+                let errorInCm = s.errorDist * 100;
+                
                 let row = `<tr class="leaderboard-row border-b border-slate-700/50">
                     <td class="px-4 py-2 font-bold">${badge}</td>
                     <td class="px-4 py-2 font-semibold text-blue-300">${s.userName}</td>
                     <td class="px-4 py-2">${s.actualDist.toFixed(2)} m</td>
-                    <td class="px-4 py-2 text-right text-amber-400 font-mono">${s.errorDist.toFixed(3)}</td>
+                    <td class="px-4 py-2 text-right text-amber-400 font-mono">${errorInCm.toFixed(1)} cm</td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
@@ -340,82 +374,58 @@
         
         saveScoreBtn.addEventListener('click', async () => {
             if (!lastLaunchResult) {
-                showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu sebelum menyimpan!");
+                showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu!");
                 return;
             }
             if (!playerNameInput.value.trim()) {
                 showCustomMsg("Sila masukkan nama anda!");
                 return;
             }
-            if (!currentUser || !db) {
-                showCustomMsg("Pangkalan data belum bersedia.");
-                return;
-            }
 
             saveScoreBtn.disabled = true;
             saveScoreBtn.innerText = "Menyimpan...";
 
+            const newScoreData = {
+                userName: playerNameInput.value.trim().substring(0, 15),
+                actualDist: lastLaunchResult.actualDist,
+                errorDist: lastLaunchResult.errorDist,
+                targetDist: currentTarget,
+                timestamp: Date.now()
+            };
+
+            // LOGIK LUAR TALIAN
+            if (!currentUser || !db) {
+                offlineScores.push(newScoreData);
+                lastLaunchResult = null; 
+                showCustomMsg("Skor disimpan secara lokal (Mod Luar Talian).");
+                playerNameInput.value = "";
+                renderLeaderboardLocal();
+                
+                saveScoreBtn.disabled = false;
+                saveScoreBtn.innerText = "Simpan Skor";
+                return;
+            }
+
             try {
                 const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
-                await addDoc(lbRef, {
-                    userId: currentUser.uid,
-                    userName: playerNameInput.value.trim().substring(0, 15),
-                    actualDist: lastLaunchResult.actualDist,
-                    errorDist: lastLaunchResult.errorDist,
-                    timestamp: Date.now()
-                });
+                newScoreData.userId = currentUser.uid; // Tambah userId hanya untuk Firebase
+                await addDoc(lbRef, newScoreData);
                 
                 lastLaunchResult = null; // Mencegah spam
                 showCustomMsg("Skor berjaya disimpan di awan!");
                 playerNameInput.value = "";
             } catch (err) {
                 console.error("Ralat menyimpan:", err);
-                showCustomMsg("Ralat sistem menyimpan data.");
+                showCustomMsg("Ralat pelayan awan. Disimpan ke Mod Luar Talian.");
+                offlineScores.push(newScoreData);
+                renderLeaderboardLocal();
             } finally {
                 saveScoreBtn.disabled = false;
                 saveScoreBtn.innerText = "Simpan Skor";
             }
         });
 
-        // Alternatif alert() untuk mematuhi arahan iFrame
-        function showCustomMsg(msg) {
-            const fb = document.getElementById('aiFeedback');
-            fb.innerHTML = `⚠️ SISTEM: ${msg}`;
-            fb.className = "text-sm text-red-400";
-        }
-
-        // ==========================================
-        // ENJIN FIZIK SIMULASI (Dikalibrasi NASA)
-        // ==========================================
-        const simCanvas = document.getElementById('simCanvas');
-        const simCtx = simCanvas.getContext('2d');
-        const radarCanvas = document.getElementById('radarCanvas');
-        const radarCtx = radarCanvas.getContext('2d');
-        
-        let PxPerMeter = 6;
-        let groundH = 30;
-        let isAnimating = false;
-        let animFrame;
-        
-        // State
-        let T = 0, dT = 0.033; // ~30fps step
-        let rocket = { x:0, y:0, z:0, vx:0, vy:0, vz:0, angle:0, hasParachuteDeploed: false };
-        let pathSide = [];
-        let pathRadar = [];
-        
-        function resize() {
-            simCanvas.width = document.getElementById('canvasContainer').clientWidth;
-            simCanvas.height = document.getElementById('canvasContainer').clientHeight;
-            radarCanvas.width = document.getElementById('radarContainer').clientWidth;
-            radarCanvas.height = document.getElementById('radarContainer').clientHeight;
-            PxPerMeter = simCanvas.width / 110; // Viewport can show up to 110m
-            if(!isAnimating) renderFrame();
-        }
-        window.addEventListener('resize', resize);
-        
-        // Link all basic sliders
-        function linkSlider(sId, iId) {
-            const s = document.getElementById(sId);
+        // Alternatif alert()
             const i = document.getElementById(iId);
             if(s && i) {
                 s.addEventListener('input', () => { 
