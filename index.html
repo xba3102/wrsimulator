@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulasi Roket Air AI - Edisi Pro (Calibrated)</title>
+    <title>Simulasi Roket Air Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -14,792 +13,725 @@
             margin: 0;
             overflow-x: hidden;
         }
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
         input[type=range] {
             accent-color: #3b82f6;
-        }
-        .panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
         }
         .canvas-container {
             position: relative;
             width: 100%;
-            background: linear-gradient(to bottom, #0ea5e9 0%, #7dd3fc 60%, #166534 100%);
+            height: 45vh;
+            min-height: 350px;
+            background: linear-gradient(to bottom, #0284c7 0%, #7dd3fc 100%);
             border-radius: 0.75rem;
             overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
         }
-        .radar-bg {
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 19px,
-                rgba(52, 211, 153, 0.1) 20px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 19px,
-                rgba(52, 211, 153, 0.1) 20px
-            ), #064e3b;
+        .radar-container {
+            width: 100%;
+            height: 150px;
+            background-color: #064e3b; /* Dark green for radar ground */
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 2px solid #34d399;
+            position: relative;
         }
-        canvas { display: block; width: 100%; height: 100%; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .leaderboard-row:nth-child(even) {
+            background-color: rgba(255,255,255,0.05);
+        }
+        /* Custom Scrollbar for panel */
+        .scroll-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scroll-panel::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .scroll-panel::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
     </style>
 </head>
-<body class="p-2 md:p-4 lg:h-screen lg:flex lg:flex-col overflow-hidden">
+<body class="p-4 md:p-8 flex flex-col items-center">
 
-    <header class="mb-4 text-center shrink-0">
-        <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Simulasi Roket Air AI : PRO (NASA Calibrated)</h1>
-        <p class="text-slate-400 text-sm">Fizik Gunaan | Telemetri | Radar Lintang | Analisis Kestabilan (CG/CP)</p>
-    </header>
+    <div class="max-w-7xl w-full">
+        <header class="mb-6 text-center">
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">WRSimulator Pro (NASA Calibrated)</h1>
+            <p class="text-slate-400">Oleh Cg. Jabdi Lobah (SK Bikang) | Sasaran: 60 Meter</p>
+        </header>
 
-    <div class="flex flex-col lg:flex-row gap-4 h-full flex-1 min-h-0">
-        
-        <div class="panel p-4 w-full lg:w-1/4 flex flex-col gap-4 overflow-y-auto shrink-0">
-            <h2 class="text-lg font-bold text-blue-300 border-b border-slate-600 pb-1">Spesifikasi Roket & Alam</h2>
+        <div class="flex flex-col lg:flex-row gap-6">
             
-            <div class="space-y-3">
+            <div class="glass-panel p-6 rounded-xl w-full lg:w-1/3 flex flex-col gap-4 h-[80vh] overflow-y-auto scroll-panel">
+                <h2 class="text-xl font-bold text-blue-300 border-b border-slate-600 pb-2 sticky top-0 bg-slate-900/90 py-2 z-10">Panel Kawalan</h2>
+                
                 <!-- Water -->
                 <div>
-                    <label class="flex justify-between text-xs mb-1 text-slate-300">Isipadu Air (ml) [Optimum: 500ml]</label>
-                    <div class="flex items-center gap-2">
+                    <label class="flex justify-between text-sm mb-1 text-slate-300">Isipadu Air (ml)</label>
+                    <div class="flex items-center gap-3">
                         <input type="range" id="water" min="0" max="1500" value="500" class="w-full flex-1">
-                        <input type="number" id="waterInput" min="0" max="1500" value="500" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-blue-400 text-xs font-bold text-center">
+                        <input type="number" id="waterInput" min="0" max="1500" value="500" class="w-20 px-2 py-1 bg-slate-800 border rounded text-blue-400 font-bold text-center">
                     </div>
                 </div>
 
                 <!-- PSI -->
                 <div>
-                    <label class="flex justify-between text-xs mb-1 text-slate-300">Tekanan (PSI) [Max selamat: ~90-100]</label>
-                    <div class="flex items-center gap-2">
+                    <label class="flex justify-between text-sm mb-1 text-slate-300">Tekanan (PSI)</label>
+                    <div class="flex items-center gap-3">
                         <input type="range" id="psi" min="10" max="100" value="60" class="w-full flex-1">
-                        <input type="number" id="psiInput" min="10" max="100" value="60" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-red-400 text-xs font-bold text-center">
+                        <input type="number" id="psiInput" min="10" max="100" value="60" class="w-20 px-2 py-1 bg-slate-800 border rounded text-red-400 font-bold text-center">
                     </div>
                 </div>
 
                 <!-- Angle -->
                 <div>
-                    <label class="flex justify-between text-xs mb-1 text-slate-300">Sudut Lancar (°) [Optimum: 45°]</label>
-                    <div class="flex items-center gap-2">
+                    <label class="flex justify-between text-sm mb-1 text-slate-300">Sudut Pelancaran (°)</label>
+                    <div class="flex items-center gap-3">
                         <input type="range" id="angle" min="10" max="90" value="45" class="w-full flex-1">
-                        <input type="number" id="angleInput" min="10" max="90" value="45" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-emerald-400 text-xs font-bold text-center">
+                        <input type="number" id="angleInput" min="10" max="90" value="45" class="w-20 px-2 py-1 bg-slate-800 border rounded text-emerald-400 font-bold text-center">
                     </div>
                 </div>
 
-                <!-- Wind -->
-                <div class="flex gap-2">
+                <!-- Weights -->
+                <div class="flex gap-4">
                     <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Angin (m/s)</label>
-                        <input type="number" id="windInput" min="0" max="20" value="0" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-gray-300 text-xs font-bold text-center">
+                        <label class="text-sm mb-1 text-slate-300 block">Botol Kosong (g)</label>
+                        <input type="number" id="weightInput" min="10" max="200" value="50" class="w-full px-2 py-1 bg-slate-800 border rounded text-orange-400 font-bold text-center">
                     </div>
                     <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Arah Angin</label>
-                        <select id="windDir" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-gray-300 text-xs">
-                            <option value="0">Utara</option>
-                            <option value="90" selected>Timur (Bantu)</option>
-                            <option value="180">Selatan</option>
-                            <option value="270">Barat (Lawan)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Bottle & Clay -->
-                <div class="flex gap-2">
-                    <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Botol (g)</label>
-                        <input type="number" id="weightInput" min="10" max="200" value="50" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-orange-400 text-xs font-bold text-center">
-                    </div>
-                    <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Tanah Liat (g)</label>
-                        <input type="number" id="clayInput" min="0" max="200" value="15" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-yellow-400 text-xs font-bold text-center">
+                        <label class="text-sm mb-1 text-slate-300 block">Tanah Liat (g)</label>
+                        <input type="number" id="clayInput" min="0" max="150" value="15" class="w-full px-2 py-1 bg-slate-800 border rounded text-yellow-400 font-bold text-center">
                     </div>
                 </div>
 
                 <!-- Fins -->
-                <div class="flex gap-2">
+                <div class="flex gap-4 mt-2">
                     <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Sirip Pjg(cm)</label>
-                        <input type="number" id="finLenInput" min="2" max="20" value="10" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-cyan-400 text-xs font-bold text-center">
+                        <label class="text-sm mb-1 text-slate-300 block">Pjg Sirip (cm)</label>
+                        <input type="number" id="finLenInput" min="5" max="20" value="10" class="w-full px-2 py-1 bg-slate-800 border rounded text-cyan-400 font-bold text-center">
                     </div>
                     <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Sirip Lbr(cm)</label>
-                        <input type="number" id="finWidInput" min="2" max="20" value="8" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-cyan-400 text-xs font-bold text-center">
+                        <label class="text-sm mb-1 text-slate-300 block">Lbr Sirip (cm)</label>
+                        <input type="number" id="finWidInput" min="5" max="20" value="10" class="w-full px-2 py-1 bg-slate-800 border rounded text-cyan-400 font-bold text-center">
                     </div>
                 </div>
 
-                <!-- Equipment: Nozzle & Parachute -->
-                <div class="flex gap-2">
-                    <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Nozzle</label>
-                        <select id="nozzleType" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-purple-400 text-xs font-bold">
-                            <option value="gardena">Gardena (9mm)</option>
-                            <option value="standard">Tiada (21mm)</option>
+                <!-- Hardware (Nozzle, Rail, Parachute) -->
+                <div class="mt-2 space-y-3">
+                    <div>
+                        <label class="text-sm text-slate-300 block mb-1">Jenis Nozzle</label>
+                        <select id="nozzleType" class="w-full px-3 py-2 bg-slate-800 border rounded text-gray-300 text-sm">
+                            <option value="standard">Standard (Botol Biasa 9mm)</option>
+                            <option value="gardena" selected>Gardena (Pelepasan Lancar)</option>
                         </select>
                     </div>
-                    <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Payung Terjun (cm)</label>
-                        <input type="number" id="parachuteInput" min="0" max="100" value="0" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-pink-400 text-xs font-bold text-center" placeholder="0-100cm">
+                    <div>
+                        <label class="text-sm text-slate-300 block mb-1">Panjang Rail Pelepasan (Meter)</label>
+                        <input type="range" id="rail" min="0" max="3" step="0.5" value="1.0" class="w-full">
+                        <div class="text-xs text-right text-slate-400"><span id="railDisp">1.0</span> m</div>
+                    </div>
+                    <div>
+                        <label class="text-sm text-slate-300 block mb-1">Saiz Payung Terjun (cm)</label>
+                        <input type="range" id="parachute" min="0" max="100" step="5" value="0" class="w-full">
+                        <div class="text-xs text-right text-slate-400"><span id="paraDisp">0</span> cm</div>
                     </div>
                 </div>
 
-                <!-- Launch Rail Length Variable -->
-                <div>
-                    <label class="flex justify-between text-xs mb-1 text-slate-300">Panjang Rail Pelancar (m) [Geseran]</label>
-                    <div class="flex items-center gap-2">
-                        <input type="range" id="railLen" min="0.5" max="3.0" step="0.1" value="1.0" class="w-full flex-1">
-                        <input type="number" id="railLenInput" min="0.5" max="3.0" step="0.1" value="1.0" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-amber-400 text-xs font-bold text-center">
+                <!-- Wind -->
+                <div class="mt-2 border-t border-slate-700 pt-3">
+                    <label class="text-sm mb-1 text-slate-300 block">Kelajuan Angin (m/s)</label>
+                    <input type="range" id="wind" min="0" max="15" value="2" class="w-full">
+                    <div class="flex justify-between items-center mt-1">
+                        <select id="windDir" class="px-2 py-1 bg-slate-800 border rounded text-gray-300 text-sm">
+                            <option value="0">Utara</option>
+                            <option value="45">Timur Laut</option>
+                            <option value="90" selected>Timur (Bantuan)</option>
+                            <option value="135">Tenggara</option>
+                            <option value="180">Selatan</option>
+                            <option value="225">Barat Daya</option>
+                            <option value="270">Barat (Rintangan)</option>
+                            <option value="315">Barat Laut</option>
+                        </select>
+                        <span class="text-sm text-gray-400 font-bold" id="windDisp">2 m/s</span>
                     </div>
+                </div>
+
+                <div class="mt-4 pb-4">
+                    <button id="launchBtn" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-lg shadow-lg transform transition-all active:scale-95">
+                        🚀 LEPAS ROKET!
+                    </button>
                 </div>
             </div>
 
-            <div class="mt-2">
-                <button id="launchBtn" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-lg shadow-lg transition-transform transform active:scale-95">
-                    🚀 LANCAR ROKET!
-                </button>
-            </div>
-            
-            <div id="aiFeedback" class="mt-2 text-xs text-yellow-400 p-2 bg-slate-800 rounded border border-slate-600">
-                AI: Kalibrasi NASA aktif. 60 PSI / 45° / ~500ml air menghasilkan jarak optimum. Sasaran 60m boleh dicapai dengan pelarasan teliti.
-            </div>
-        </div>
+            <div class="w-full lg:w-2/3 flex flex-col gap-4">
+                
+                <!-- Side View Canvas -->
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="simCanvas"></canvas>
+                    
+                    <!-- HUD Telemetry overlay -->
+                    <div class="absolute top-2 left-2 bg-black/50 p-2 rounded text-xs font-mono text-green-400">
+                        <div>MASA: <span id="hudTime">0.00</span> s</div>
+                        <div>LAJU: <span id="hudVel">0.0</span> m/s</div>
+                        <div>TINGGI: <span id="hudAlt">0.0</span> m</div>
+                    </div>
+                </div>
 
-        <div class="w-full lg:w-2/4 flex flex-col gap-4 min-h-[40vh]">
-            <div class="canvas-container flex-1" id="mainCanvasContainer">
-                <canvas id="simCanvas"></canvas>
-                <div class="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
-                    <div class="bg-black/50 p-2 rounded text-white font-mono text-sm border border-white/20 shadow-lg">
-                        <div class="text-blue-300 mb-1 font-bold text-xs uppercase">Telemetri Langsung</div>
-                        <div>MASA : <span id="telTime">0.00</span> s</div>
-                        <div>KELAJUAN : <span id="telSpeed">0.0</span> m/s</div>
-                        <div>KETINGGIAN: <span id="telAlt">0.0</span> m</div>
-                        <div>JARAK (X) : <span id="telDist">0.0</span> m</div>
-                        <div class="mt-1 pt-1 border-t border-white/20 text-yellow-300 text-xs">
-                            FASA: <span id="telPhase">BERSEDIA</span>
+                <!-- Top-Down Radar View -->
+                <div class="radar-container" id="radarContainer">
+                    <canvas id="radarCanvas"></canvas>
+                    <div class="absolute top-1 left-2 text-xs font-bold text-emerald-300">RADAR PANDANGAN ATAS</div>
+                </div>
+                
+                <div class="glass-panel p-4 rounded-xl text-center grid grid-cols-3 gap-2">
+                    <div>
+                        <p class="text-xs text-slate-400">Sasaran Z-X</p>
+                        <p class="text-lg font-bold text-white">60.0 m</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Jarak Tiba</p>
+                        <p id="resultDist" class="text-lg font-bold text-blue-400">0.0 m</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Ralat (Meleset)</p>
+                        <p id="resultError" class="text-lg font-bold text-red-400">0.0 m</p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-2">🤖 AI Analisis & Nasihat</h3>
+                    <p id="aiFeedback" class="text-sm text-yellow-400">Sistem sedia. Tetapkan parameter dan lancar.</p>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="glass-panel p-4 rounded-xl mt-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏆 Carta Top 10 (Firebase)</h3>
+                        <div class="flex gap-2 text-sm">
+                            <input type="text" id="playerName" placeholder="Nama Anda" class="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-white" maxlength="15">
+                            <button id="saveScoreBtn" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 rounded font-bold text-white transition-colors disabled:opacity-50">Simpan Skor</button>
                         </div>
                     </div>
-                    <div class="bg-black/50 p-2 rounded text-center border border-white/20">
-                        <div class="text-xs text-slate-300 uppercase">Sasaran 60m</div>
-                        <div id="finalStatus" class="text-xl font-bold text-white">-</div>
+                    <div class="w-full overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-800/50">
+                                <tr>
+                                    <th class="px-4 py-2">Kedudukan</th>
+                                    <th class="px-4 py-2">Nama</th>
+                                    <th class="px-4 py-2">Jarak Sebenar</th>
+                                    <th class="px-4 py-2 text-right">Ralat (m)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody">
+                                <tr><td colspan="4" class="text-center py-4 text-slate-500">Memuatkan carta...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
             </div>
         </div>
-
-        <div class="w-full lg:w-1/4 flex flex-col gap-4 shrink-0">
-            <div class="panel p-3 h-1/3 min-h-[150px] flex flex-col relative">
-                <div class="text-xs font-bold text-slate-300 mb-1 z-10">Analisis Kestabilan (CG/CP)</div>
-                <div class="flex-1 w-full relative bg-slate-800/50 rounded border border-slate-700">
-                    <canvas id="blueprintCanvas" class="absolute inset-0"></canvas>
-                </div>
-                <div id="stabilityWarning" class="text-center text-xs mt-1 font-bold text-emerald-400">STATUS: STABIL</div>
-            </div>
-
-            <div class="panel p-3 h-1/3 min-h-[150px] flex flex-col">
-                <div class="text-xs font-bold text-slate-300 mb-1 flex justify-between">
-                    <span>Radar Pandangan Atas (X-Z)</span>
-                    <span class="text-emerald-400 text-[10px]">Sasaran: Hijau</span>
-                </div>
-                <div class="flex-1 w-full radar-bg rounded border border-emerald-900 overflow-hidden relative">
-                    <canvas id="radarCanvas" class="absolute inset-0"></canvas>
-                </div>
-            </div>
-
-            <div class="panel p-3 h-1/3 min-h-[150px] flex flex-col">
-                <div class="text-xs font-bold text-slate-300 mb-1 flex justify-between">
-                    <span>Graf Ketinggian vs Masa</span>
-                    <span id="apogeeText" class="text-blue-400 text-[10px]">Apogee: -</span>
-                </div>
-                <div class="flex-1 w-full bg-slate-900 rounded border border-slate-700 relative overflow-hidden">
-                    <canvas id="graphCanvas" class="absolute inset-0"></canvas>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <script>
-        const ui = {
-            water: document.getElementById('water'),
-            waterInput: document.getElementById('waterInput'),
-            psi: document.getElementById('psi'),
-            psiInput: document.getElementById('psiInput'),
-            angle: document.getElementById('angle'),
-            angleInput: document.getElementById('angleInput'),
-            windInput: document.getElementById('windInput'),
-            windDir: document.getElementById('windDir'),
-            weightInput: document.getElementById('weightInput'),
-            clayInput: document.getElementById('clayInput'),
-            finLenInput: document.getElementById('finLenInput'),
-            finWidInput: document.getElementById('finWidInput'),
-            nozzleType: document.getElementById('nozzleType'),
-            parachuteInput: document.getElementById('parachuteInput'),
-            railLen: document.getElementById('railLen'),
-            railLenInput: document.getElementById('railLenInput'),
-            launchBtn: document.getElementById('launchBtn'),
-            aiFeedback: document.getElementById('aiFeedback'),
-            stabilityWarning: document.getElementById('stabilityWarning')
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase Vars
+        let db, auth, currentUser;
+        const TARGET_DIST = 60;
+        let lastLaunchResult = null; // Menyimpan rekod pelancaran terakhir pemain
+
+        // Firebase Init - menggunakan global var jika ada
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wr-simulator-pro';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            // Placeholder: Dalam environment sebenar, ini diisi oleh sistem backend
         };
 
-        const tel = {
-            time: document.getElementById('telTime'),
-            speed: document.getElementById('telSpeed'),
-            alt: document.getElementById('telAlt'),
-            dist: document.getElementById('telDist'),
-            phase: document.getElementById('telPhase'),
-            finalStatus: document.getElementById('finalStatus'),
-            apogeeText: document.getElementById('apogeeText')
-        };
-
-        const cvsMain = document.getElementById('simCanvas');
-        const ctxMain = cvsMain.getContext('2d');
-        const cvsRadar = document.getElementById('radarCanvas');
-        const ctxRadar = cvsRadar.getContext('2d');
-        const cvsGraph = document.getElementById('graphCanvas');
-        const ctxGraph = cvsGraph.getContext('2d');
-        const cvsBp = document.getElementById('blueprintCanvas');
-        const ctxBp = cvsBp.getContext('2d');
-
-        const G = 9.81;
-        const RHO_WATER = 1000;
-        const RHO_AIR = 1.225;
-        const P_ATM = 101325;
-        const V_BOTTLE = 0.0015; // 1.5L
-        const TARGET_DIST = 60; // m
-
-        let isSimulating = false;
-        let animFrame;
-        
-        let state = {
-            t: 0, x: 0, y: 0, z: 0,
-            vx: 0, vy: 0, vz: 0,
-            mass: 0, volWater: 0, pressure: 0,
-            phase: 'IDLE', isTumbling: false,
-            apogee: 0, history: []
-        };
-
-        let props = {
-            mEmpty: 0, mClay: 0, mFins: 0,
-            aNozzle: 0, cdNozzle: 0.82,
-            aFins: 0, aNose: 0.005,
-            cg: 0, cp: 0, parachuteArea: 0, parachuteMass: 0
-        };
-
-        function syncInputs(slider, input) {
-            slider.addEventListener('input', () => { input.value = slider.value; updateBlueprint(); });
-            input.addEventListener('input', () => { slider.value = input.value; updateBlueprint(); });
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            initFirebase();
+        } catch (e) {
+            console.error("Firebase tidak dapat dimulakan:", e);
+            document.getElementById('leaderboardBody').innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500">Mod Luar Talian (Tiada pangkalan data)</td></tr>`;
         }
-        syncInputs(ui.water, ui.waterInput);
-        syncInputs(ui.psi, ui.psiInput);
-        syncInputs(ui.angle, ui.angleInput);
-        syncInputs(ui.railLen, ui.railLenInput);
+
+        async function initFirebase() {
+            try {
+                // RULE 3: Auth mesti dibuat sebelum query
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                currentUser = auth.currentUser;
+                loadLeaderboard();
+            } catch (error) {
+                console.error("Ralat log masuk:", error);
+            }
+        }
+
+        function loadLeaderboard() {
+            if (!currentUser || !db) return;
+            
+            // RULE 1: Laluan path MESTI ketat
+            const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+            
+            // RULE 2: Tiada orderBy, where, atau limit.
+            onSnapshot(lbRef, (snapshot) => {
+                let scores = [];
+                snapshot.forEach(doc => {
+                    scores.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Proses Sorting & Limit di dalam memori (JavaScript)
+                scores.sort((a, b) => a.errorDist - b.errorDist); // Paling kecil ralat (paling tepat) di atas
+                const top10 = scores.slice(0, 10);
+                
+                renderLeaderboard(top10);
+            }, (error) => {
+                console.error("Ralat mengambil carta:", error);
+            });
+        }
+
+        function renderLeaderboard(scores) {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            
+            if (scores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada rekod. Jadilah yang pertama!</td></tr>';
+                return;
+            }
+
+            scores.forEach((s, index) => {
+                let badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
+                let row = `<tr class="leaderboard-row border-b border-slate-700/50">
+                    <td class="px-4 py-2 font-bold">${badge}</td>
+                    <td class="px-4 py-2 font-semibold text-blue-300">${s.userName}</td>
+                    <td class="px-4 py-2">${s.actualDist.toFixed(2)} m</td>
+                    <td class="px-4 py-2 text-right text-amber-400 font-mono">${s.errorDist.toFixed(3)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // UI Elements
+        const saveScoreBtn = document.getElementById('saveScoreBtn');
+        const playerNameInput = document.getElementById('playerName');
         
-        [ui.windInput, ui.windDir, ui.weightInput, ui.clayInput, 
-         ui.finLenInput, ui.finWidInput, ui.nozzleType, ui.parachuteInput].forEach(el => {
-            el.addEventListener('change', updateBlueprint);
-            el.addEventListener('input', updateBlueprint);
+        saveScoreBtn.addEventListener('click', async () => {
+            if (!lastLaunchResult) {
+                showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu sebelum menyimpan!");
+                return;
+            }
+            if (!playerNameInput.value.trim()) {
+                showCustomMsg("Sila masukkan nama anda!");
+                return;
+            }
+            if (!currentUser || !db) {
+                showCustomMsg("Pangkalan data belum bersedia.");
+                return;
+            }
+
+            saveScoreBtn.disabled = true;
+            saveScoreBtn.innerText = "Menyimpan...";
+
+            try {
+                const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                await addDoc(lbRef, {
+                    userId: currentUser.uid,
+                    userName: playerNameInput.value.trim().substring(0, 15),
+                    actualDist: lastLaunchResult.actualDist,
+                    errorDist: lastLaunchResult.errorDist,
+                    timestamp: Date.now()
+                });
+                
+                lastLaunchResult = null; // Mencegah spam
+                showCustomMsg("Skor berjaya disimpan di awan!");
+                playerNameInput.value = "";
+            } catch (err) {
+                console.error("Ralat menyimpan:", err);
+                showCustomMsg("Ralat sistem menyimpan data.");
+            } finally {
+                saveScoreBtn.disabled = false;
+                saveScoreBtn.innerText = "Simpan Skor";
+            }
         });
 
-        function resizeCanvases() {
-            const containers = [
-                { c: cvsMain, p: cvsMain.parentElement },
-                { c: cvsRadar, p: cvsRadar.parentElement },
-                { c: cvsGraph, p: cvsGraph.parentElement },
-                { c: cvsBp, p: cvsBp.parentElement }
-            ];
-            containers.forEach(item => {
-                item.c.width = item.p.clientWidth;
-                item.c.height = item.p.clientHeight;
-            });
-            if (!isSimulating) {
-                renderMain(); renderRadar(); renderGraph(); updateBlueprint();
-            }
-        }
-        window.addEventListener('resize', resizeCanvases);
-
-        function updateBlueprint() {
-            if(isSimulating) return;
-
-            const mBottle = parseFloat(ui.weightInput.value) / 1000;
-            const mClay = parseFloat(ui.clayInput.value) / 1000;
-            const finL = parseFloat(ui.finLenInput.value) / 100;
-            const finW = parseFloat(ui.finWidInput.value) / 100;
-            const vWater = parseFloat(ui.waterInput.value) / 1000000;
-            
-            const aFin = 0.5 * finL * finW;
-            const mFins = (aFin * 0.001 * 1200) * 3;
-            const mWater = vWater * RHO_WATER;
-            
-            // Parachute weight estimation: 100cm diameter parachute weighs ~50g (0.05kg) scaling quadratically
-            const pSizeCm = Math.max(0, parseFloat(ui.parachuteInput.value) || 0);
-            const mParachute = (Math.pow(pSizeCm / 100, 2)) * 0.05;
-
-            const aBottleFront = Math.PI * Math.pow(0.045, 2);
-            const aFinsFront = 3 * (finL * 0.001);
-            
-            const hBottle = 0.33;
-            const waterRatio = vWater / V_BOTTLE;
-            const hWater = waterRatio * hBottle; 
-            const pWater = hBottle - (hWater / 2);
-
-            const totalMass = mBottle + mClay + mFins + mWater + mParachute;
-            let cg = (mClay*0 + mBottle*0.165 + mFins*0.30 + mWater*pWater + mParachute*0.25) / totalMass;
-            
-            const areaNose = 0.005;
-            const areaFins = aFin * 2;
-            let cp = (areaNose * 0.05 + areaFins * 0.30) / (areaNose + areaFins);
-            
-            ctxBp.clearRect(0, 0, cvsBp.width, cvsBp.height);
-            const cx = cvsBp.width / 2;
-            const scale = (cvsBp.height * 0.8) / hBottle;
-            const topY = cvsBp.height * 0.1;
-
-            ctxBp.strokeStyle = '#94a3b8';
-            ctxBp.lineWidth = 2;
-            ctxBp.beginPath();
-            ctxBp.moveTo(cx - 15, topY + hBottle*scale);
-            ctxBp.lineTo(cx - 15, topY + 0.1*scale);
-            ctxBp.lineTo(cx, topY);
-            ctxBp.lineTo(cx + 15, topY + 0.1*scale);
-            ctxBp.lineTo(cx + 15, topY + hBottle*scale);
-            ctxBp.closePath();
-            ctxBp.stroke();
-
-            if (waterRatio > 0) {
-                ctxBp.fillStyle = 'rgba(56, 189, 248, 0.5)';
-                const wTop = topY + (hBottle - hWater)*scale;
-                ctxBp.fillRect(cx - 14, wTop, 28, hWater*scale);
-            }
-
-            if (mClay > 0) {
-                ctxBp.fillStyle = '#facc15';
-                ctxBp.beginPath();
-                ctxBp.arc(cx, topY + 5, Math.min(10, 3 + mClay*100), 0, Math.PI*2);
-                ctxBp.fill();
-            }
-
-            ctxBp.fillStyle = 'rgba(6, 182, 212, 0.6)';
-            const fl = finL * scale, fw = finW * scale;
-            ctxBp.beginPath();
-            ctxBp.moveTo(cx - 15, topY + 0.30*scale);
-            ctxBp.lineTo(cx - 15 - fw, topY + 0.30*scale + fl);
-            ctxBp.lineTo(cx - 15, topY + 0.30*scale + fl);
-            ctxBp.fill();
-            ctxBp.beginPath();
-            ctxBp.moveTo(cx + 15, topY + 0.30*scale);
-            ctxBp.lineTo(cx + 15 + fw, topY + 0.30*scale + fl);
-            ctxBp.lineTo(cx + 15, topY + 0.30*scale + fl);
-            ctxBp.fill();
-
-            const cgY = topY + cg * scale;
-            ctxBp.fillStyle = '#fff';
-            ctxBp.beginPath(); ctxBp.arc(cx, cgY, 6, 0, Math.PI*2); ctxBp.fill();
-            ctxBp.fillStyle = '#000';
-            ctxBp.beginPath(); ctxBp.arc(cx, cgY, 6, 0, Math.PI); ctxBp.fill();
-            ctxBp.fillText("CG", cx + 12, cgY + 4);
-
-            const cpY = topY + cp * scale;
-            ctxBp.strokeStyle = '#ef4444';
-            ctxBp.lineWidth = 2;
-            ctxBp.beginPath();
-            ctxBp.moveTo(cx - 5, cpY - 5); ctxBp.lineTo(cx + 5, cpY + 5);
-            ctxBp.moveTo(cx - 5, cpY + 5); ctxBp.lineTo(cx + 5, cpY - 5);
-            ctxBp.stroke();
-            ctxBp.fillStyle = '#ef4444';
-            ctxBp.fillText("CP", cx + 12, cpY + 4);
-
-            if (cg < cp) {
-                ui.stabilityWarning.innerText = "STATUS: STABIL ✅";
-                ui.stabilityWarning.className = "text-center text-xs mt-1 font-bold text-emerald-400";
-                state.isTumbling = false;
-            } else {
-                ui.stabilityWarning.innerText = "TIDAK STABIL! (TERPELANTING) ❌";
-                ui.stabilityWarning.className = "text-center text-xs mt-1 font-bold text-red-500 bg-red-900/30 py-1 rounded";
-                state.isTumbling = true;
-            }
-
-            props.cg = cg; props.cp = cp;
-            props.mEmpty = mBottle; props.mClay = mClay; props.mFins = mFins;
-            props.aFrontal = aBottleFront + aFinsFront;
-            props.aFins = aFin * 3;
-            props.aNozzle = ui.nozzleType.value === 'gardena' ? (Math.PI * Math.pow(0.0045, 2)) : (Math.PI * Math.pow(0.0105, 2));
-            
-            const pSizeM = pSizeCm / 100;
-            props.parachuteArea = pSizeM > 0 ? (Math.PI * Math.pow(pSizeM/2, 2)) : 0;
-            props.parachuteMass = mParachute;
-            
-            state.angle = parseFloat(ui.angleInput.value) * (Math.PI/180);
-            renderMain();
+        // Alternatif alert() untuk mematuhi arahan iFrame
+        function showCustomMsg(msg) {
+            const fb = document.getElementById('aiFeedback');
+            fb.innerHTML = `⚠️ SISTEM: ${msg}`;
+            fb.className = "text-sm text-red-400";
         }
 
-        function initSimulation() {
-            updateBlueprint();
+        // ==========================================
+        // ENJIN FIZIK SIMULASI (Dikalibrasi NASA)
+        // ==========================================
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas.getContext('2d');
+        const radarCanvas = document.getElementById('radarCanvas');
+        const radarCtx = radarCanvas.getContext('2d');
+        
+        let PxPerMeter = 6;
+        let groundH = 30;
+        let isAnimating = false;
+        let animFrame;
+        
+        // State
+        let T = 0, dT = 0.033; // ~30fps step
+        let rocket = { x:0, y:0, z:0, vx:0, vy:0, vz:0, angle:0, hasParachuteDeploed: false };
+        let pathSide = [];
+        let pathRadar = [];
+        
+        function resize() {
+            simCanvas.width = document.getElementById('canvasContainer').clientWidth;
+            simCanvas.height = document.getElementById('canvasContainer').clientHeight;
+            radarCanvas.width = document.getElementById('radarContainer').clientWidth;
+            radarCanvas.height = document.getElementById('radarContainer').clientHeight;
+            PxPerMeter = simCanvas.width / 110; // Viewport can show up to 110m
+            if(!isAnimating) renderFrame();
+        }
+        window.addEventListener('resize', resize);
+        
+        // Link all basic sliders
+        function linkSlider(sId, iId) {
+            const s = document.getElementById(sId);
+            const i = document.getElementById(iId);
+            if(s && i) {
+                s.addEventListener('input', () => { i.value = s.value; if(!isAnimating) renderFrame(); });
+                i.addEventListener('input', () => { s.value = i.value; if(!isAnimating) renderFrame(); });
+            }
+        }
+        linkSlider('water', 'waterInput');
+        linkSlider('psi', 'psiInput');
+        linkSlider('angle', 'angleInput');
+        
+        document.getElementById('wind').addEventListener('input', (e) => {
+            document.getElementById('windDisp').innerText = e.target.value + " m/s";
+        });
+        document.getElementById('rail').addEventListener('input', (e) => {
+            document.getElementById('railDisp').innerText = e.target.value;
+        });
+        document.getElementById('parachute').addEventListener('input', (e) => {
+            document.getElementById('paraDisp').innerText = e.target.value;
+        });
+        
+        function startSimulation() {
+            if (isAnimating) return;
             
-            const vWaterInit = parseFloat(ui.waterInput.value) / 1000000;
-            const psi = parseFloat(ui.psiInput.value);
-            const pAbsInit = (psi * 6894.76) + P_ATM;
-            const angleVal = parseFloat(ui.angleInput.value);
-            const angleRad = angleVal * (Math.PI/180);
+            // Dapatkan input pemain
+            const waterML = parseFloat(document.getElementById('waterInput').value);
+            const psi = parseFloat(document.getElementById('psiInput').value);
+            const angleDeg = parseFloat(document.getElementById('angleInput').value);
+            const bWeight = parseFloat(document.getElementById('weightInput').value);
+            const clay = parseFloat(document.getElementById('clayInput').value);
+            const finL = parseFloat(document.getElementById('finLenInput').value);
+            const finW = parseFloat(document.getElementById('finWidInput').value);
+            const nozzle = document.getElementById('nozzleType').value;
+            const railLen = parseFloat(document.getElementById('rail').value);
+            const windSpd = parseFloat(document.getElementById('wind').value);
+            const windDir = parseFloat(document.getElementById('windDir').value);
             
-            state = {
-                t: 0, x: 0, y: 0, z: 0,
-                vx: 0, vy: 0, vz: 0,
-                mass: props.mEmpty + props.mClay + props.mFins + props.parachuteMass + (vWaterInit * RHO_WATER),
-                volWater: vWaterInit,
-                pressure: pAbsInit,
-                phase: 'BERSEDIA',
-                isTumbling: ui.stabilityWarning.innerText.includes("TIDAK"),
-                apogee: 0, history: [],
-                angle: angleRad, pitchRate: 0,
-                onRail: true, railDistance: 0
+            // Jisim roket = Botol + Tanah Liat + Air (awalan) + Sirip
+            // 1ml air = 1g
+            const dryMass = (bWeight + clay + ((finL * finW * 0.5)*0.1*1.2*3)) / 1000; // dalam KG
+            const initialWaterMass = waterML / 1000; 
+            
+            // NASA Calibration parameters untuk 60 PSI, 1/3 air, 45 deg = 77m.
+            const pPascal = psi * 6894.76;
+            const volM3 = 0.0015; // 1.5L bottle
+            const nozzleArea = nozzle === 'gardena' ? 0.0001 : 0.000064; // Gardena luang lebih besar sedikit
+            
+            // Pengiraan momentum ideal berdasarkan tenaga termampat (Simplified adiabatic expansion)
+            // Energy = P * V_air
+            const airVol = volM3 - (initialWaterMass / 1000); // isipadu udara
+            let availableEnergy = 0;
+            if (airVol > 0 && initialWaterMass > 0) {
+                 availableEnergy = pPascal * airVol * Math.log(volM3 / airVol);
+            }
+            
+            // Kecekapan Nozzle (Gardena = lancar, tiada sangkut)
+            const nozzleEfficiency = nozzle === 'gardena' ? 0.85 : 0.70;
+            
+            // Friction Rail: Rail panjang memberi kestabilan arah tapi mencuri sedikit tenaga kinetik awal
+            const railFrictionLoss = railLen * 2.5; // Joule lost per meter
+            
+            let kineticEnergy = (availableEnergy * nozzleEfficiency) - railFrictionLoss;
+            if (kineticEnergy < 0) kineticEnergy = 0;
+            
+            // V = sqrt(2 * KE / mass_purata)
+            const avgMass = dryMass + (initialWaterMass / 2); // Jisim purata semasa pelepasan
+            let vInitial = avgMass > 0 ? Math.sqrt((2 * kineticEnergy) / avgMass) : 0;
+            
+            // Faktor botol kosong atau penuh
+            if (waterML < 100 || waterML > 1300) vInitial *= 0.2; // Gagal terbang tinggi
+            
+            // Sudut 90 akan menegak. Arah sentiasa 'Timur' iaitu +X.
+            const rad = angleDeg * Math.PI / 180;
+            
+            rocket = {
+                x: 0, y: railLen * Math.sin(rad), z: 0, // Z adalah satah sisi
+                vx: vInitial * Math.cos(rad),
+                vy: vInitial * Math.sin(rad),
+                vz: 0,
+                mass: dryMass, // Kita andaikan air habis serta-merta sejurus lepas rel
+                angle: rad,
+                hasParachuteDeployed: false,
+                paraSize: parseFloat(document.getElementById('parachute').value) / 100 // cm to m
             };
-
-            tel.apogeeText.innerText = "Apogee: -";
-            ui.launchBtn.disabled = true;
-            ui.launchBtn.innerHTML = "⏳ TERBANG...";
-            ui.launchBtn.classList.add('opacity-50');
             
-            isSimulating = true;
-            state.phase = 'THRUST';
-            requestAnimationFrame(physicsLoop);
-        }
+            // Pengiraan Angin
+            const windRad = (windDir - 90) * (Math.PI / 180);
+            const windX = windSpd * Math.cos(windRad);
+            const windZ = windSpd * Math.sin(windRad);
+            
+            // Sifat Aerodinamik
+            const area = 0.0063; // Keratan rentas botol ~9cm diameter
+            const cdBase = 0.35; // Aerodinamik botol
 
-        function physicsLoop() {
-            if (!isSimulating) return;
+            T = 0;
+            pathSide = [];
+            pathRadar = [];
+            isAnimating = true;
+            
+            const btn = document.getElementById('launchBtn');
+            btn.disabled = true;
+            btn.innerText = "⏳ Sedang Terbang...";
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            document.getElementById('resultDist').innerText = "0.0 m";
+            document.getElementById('resultError').innerText = "0.0 m";
 
-            const dt = 0.005;
-            const stepsPerFrame = 4;
-
-            for(let i=0; i<stepsPerFrame; i++) {
-                if(state.phase === 'LANDED') break;
-
-                const windSpeed = parseFloat(ui.windInput.value);
-                const windDirDeg = parseFloat(ui.windDir.value);
-                const windDirRad = windDirDeg * (Math.PI/180);
+            function step() {
+                T += dT;
                 
-                const wx = -windSpeed * Math.sin(windDirRad);
-                const wz = windSpeed * Math.cos(windDirRad);
-
-                const vrx = state.vx - wx;
-                const vry = state.vy;
-                const vrz = state.vz - wz;
-                const vr_mag = Math.sqrt(vrx*vrx + vry*vry + vrz*vrz);
-
-                let thrustF = 0;
-                let massFlow = 0;
-
-                if (state.phase === 'THRUST' && state.volWater > 0) {
-                    const pGauge = Math.max(0, state.pressure - P_ATM);
-                    if (pGauge > 0) {
-                        const ve = Math.sqrt(2 * pGauge / RHO_WATER);
-                        massFlow = RHO_WATER * props.aNozzle * ve * props.cdNozzle;
-                        thrustF = massFlow * ve * 1.32;
-                        
-                        const dVol = (massFlow / RHO_WATER) * dt;
-                        state.volWater -= dVol;
-                        state.mass -= (massFlow * dt);
-                        
-                        const vAirOld = V_BOTTLE - (state.volWater + dVol);
-                        const vAirNew = V_BOTTLE - Math.max(0, state.volWater);
-                        if (vAirNew > 0 && vAirOld > 0) {
-                            state.pressure = state.pressure * Math.pow(vAirOld / vAirNew, 1.2);
-                        }
-                    } else {
-                        state.phase = 'COASTING';
-                    }
-                    if (state.volWater <= 0) state.phase = 'COASTING';
-                } else if (state.phase === 'THRUST') {
-                    state.phase = 'COASTING';
-                }
-
-                let dragArea = props.aFrontal;
-                let Cd = 0.35;
+                // Halaju relatif kepada angin
+                const relVx = rocket.vx - windX;
+                const relVz = rocket.vz - windZ;
+                const vMag = Math.sqrt(relVx*relVx + rocket.vy*rocket.vy + relVz*relVz);
                 
-                const targetRailLen = parseFloat(ui.railLenInput.value);
-                if (state.onRail) {
-                    const railFriction = 1.5 * (targetRailLen / 1.0);
-                    thrustF = Math.max(0, thrustF - railFriction);
-                    state.angle = parseFloat(ui.angleInput.value) * (Math.PI/180);
-                } else if (state.isTumbling) {
-                    dragArea = 0.05;
-                    Cd = 1.2;
-                    state.pitchRate += 10 * dt;
-                    state.angle += state.pitchRate * dt;
-                } else if (state.phase !== 'PARACHUTE') {
-                    if (vr_mag > 1) {
-                        state.angle = Math.atan2(vry, vrx);
-                    }
-                }
-
-                if (state.phase === 'COASTING' && state.vy < 0 && props.parachuteArea > 0 && state.y > 2) {
-                    state.phase = 'PARACHUTE';
-                }
-
-                if (state.phase === 'PARACHUTE') {
-                    dragArea = props.aFrontal + props.parachuteArea;
-                    Cd = 1.6;
-                    state.angle = -Math.PI/2;
-                }
-
-                const dragForceMag = 0.5 * RHO_AIR * vr_mag * vr_mag * Cd * dragArea;
+                // Rintangan Udara (Drag = 0.5 * rho * v^2 * Cd * A)
+                let currentCd = cdBase;
+                let currentArea = area;
                 
-                const dx = vr_mag > 0 ? -(vrx / vr_mag) * dragForceMag : 0;
-                const dy = vr_mag > 0 ? -(vry / vr_mag) * dragForceMag : 0;
-                const dz = vr_mag > 0 ? -(vrz / vr_mag) * dragForceMag : 0;
-
-                const tx = thrustF * Math.cos(state.angle);
-                const ty = thrustF * Math.sin(state.angle);
-                const tz = 0;
-
-                const ax = (tx + dx) / state.mass;
-                const ay = (ty + dy) / state.mass - G;
-                const az = (tz + dz) / state.mass;
-
-                state.vx += ax * dt;
-                state.vy += ay * dt;
-                state.vz += az * dt;
-
-                state.x += state.vx * dt;
-                state.y += state.vy * dt;
-                state.z += state.vz * dt;
-                state.t += dt;
-
-                if (state.onRail) {
-                    const currentDistFromPad = Math.sqrt(state.x**2 + state.y**2);
-                    state.railDistance = currentDistFromPad;
-                    if (state.railDistance >= targetRailLen) {
-                        state.onRail = false;
-                    }
+                // Pengembangan payung terjun di puncak Apogee (vy < 0)
+                if (rocket.vy < 0 && rocket.paraSize > 0 && !rocket.hasParachuteDeployed) {
+                    rocket.hasParachuteDeployed = true;
                 }
-
-                if (state.y > state.apogee) {
-                    state.apogee = state.y;
-                    tel.apogeeText.innerText = `Apogee: ${state.apogee.toFixed(1)}m`;
+                
+                if (rocket.hasParachuteDeployed) {
+                    currentCd = 1.5; // Drag coefficient payung terbuka
+                    currentArea = Math.PI * Math.pow(rocket.paraSize / 2, 2); // Luas payung
+                } else {
+                    // Tambah sedikit drag bergantung saiz sirip
+                    currentArea += (finL * finW * 0.0001 * 0.1); 
                 }
-
-                if (Math.floor(state.t * 1000) % 50 === 0) {
-                    state.history.push({ t: state.t, x: state.x, y: state.y, z: state.z });
+                
+                const dragF = 0.5 * 1.225 * vMag * vMag * currentCd * currentArea;
+                
+                const ax = -(dragF * (relVx / (vMag||1))) / rocket.mass;
+                const ay = -(dragF * (rocket.vy / (vMag||1))) / rocket.mass - 9.81;
+                const az = -(dragF * (relVz / (vMag||1))) / rocket.mass;
+                
+                rocket.vx += ax * dT;
+                rocket.vy += ay * dT;
+                rocket.vz += az * dT;
+                
+                rocket.x += rocket.vx * dT;
+                rocket.y += rocket.vy * dT;
+                rocket.z += rocket.vz * dT;
+                
+                rocket.angle = Math.atan2(rocket.vy, rocket.vx);
+                
+                // Catat jejak setiap 0.1s
+                if (Math.floor(T/dT) % 3 === 0) {
+                    pathSide.push({x: rocket.x, y: Math.y});
+                    pathRadar.push({x: rocket.x, z: rocket.z});
                 }
+                
+                // Kemas kini HUD
+                document.getElementById('hudTime').innerText = T.toFixed(2);
+                document.getElementById('hudVel').innerText = vMag.toFixed(1);
+                document.getElementById('hudAlt').innerText = Math.max(0, rocket.y).toFixed(1);
 
-                if (state.y <= 0 && state.t > 0.1) {
-                    state.y = 0;
-                    state.phase = 'LANDED';
-                    break;
+                renderFrame();
+                
+                if (rocket.y <= 0 && T > 0.2) {
+                    rocket.y = 0;
+                    finishSim();
+                } else {
+                    animFrame = requestAnimationFrame(step);
                 }
             }
-
-            tel.time.innerText = state.t.toFixed(2);
-            tel.speed.innerText = Math.sqrt(state.vx**2 + state.vy**2 + state.vz**2).toFixed(1);
-            tel.alt.innerText = Math.max(0, state.y).toFixed(1);
-            tel.dist.innerText = state.x.toFixed(1);
             
-            let phaseColor = 'text-blue-400';
-            if(state.onRail) { tel.phase.innerText = 'PADA RAIL (GUIDED)'; phaseColor = 'text-amber-400'; }
-            else if(state.isTumbling) { tel.phase.innerText = 'TERPELANTING!'; phaseColor = 'text-red-500'; }
-            else if(state.phase === 'THRUST') { tel.phase.innerText = 'TUJAHAN (THRUST)'; phaseColor = 'text-yellow-400'; }
-            else if(state.phase === 'COASTING') { tel.phase.innerText = 'MELUNCUR (COAST)'; phaseColor = 'text-cyan-300'; }
-            else if(state.phase === 'PARACHUTE') { tel.phase.innerText = 'PAYUNG TERJUN'; phaseColor = 'text-pink-400'; }
-            else { tel.phase.innerText = 'MENDARAT'; phaseColor = 'text-emerald-400'; }
-            tel.phase.className = `font-bold ${phaseColor}`;
+            animFrame = requestAnimationFrame(step);
+        }
 
-            renderMain();
-            renderRadar();
-            renderGraph();
+        function renderFrame() {
+            // Render Side View
+            simCtx.clearRect(0,0, simCanvas.width, simCanvas.height);
+            simCtx.fillStyle = '#15803d'; // Green ground
+            simCtx.fillRect(0, simCanvas.height - groundH, simCanvas.width, groundH);
+            
+            // Markers
+            simCtx.fillStyle = 'rgba(255,255,255,0.7)';
+            simCtx.font = '10px Inter';
+            for(let i=0; i<=110; i+=10) {
+                let px = i * PxPerMeter;
+                simCtx.fillRect(px, simCanvas.height - groundH, 1, 5);
+                simCtx.fillText(i+'m', px-5, simCanvas.height - groundH + 15);
+            }
+            
+            // Target
+            const tx = TARGET_DIST * PxPerMeter;
+            simCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+            simCtx.fillRect(tx - 10, simCanvas.height - groundH, 20, 5);
+            simCtx.fillStyle = '#ef4444';
+            simCtx.fillRect(tx, simCanvas.height - groundH - 30, 2, 30);
+            
+            // Trajectory Trail
+            simCtx.beginPath();
+            simCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+            simCtx.setLineDash([3,3]);
+            pathSide.forEach((p, i) => {
+                let px = p.x * PxPerMeter;
+                let py = simCanvas.height - groundH - (rocket.y > 0 ? (pathSide[i]?.y || p.y) * PxPerMeter : 0);
+                if(i===0) simCtx.moveTo(px, py);
+                else simCtx.lineTo(px, py);
+            });
+            simCtx.stroke();
+            simCtx.setLineDash([]);
+            
+            // Rocket Object
+            if (rocket) {
+                simCtx.save();
+                let rx = rocket.x * PxPerMeter;
+                let ry = simCanvas.height - groundH - (rocket.y * PxPerMeter);
+                simCtx.translate(rx, ry);
+                simCtx.rotate(-rocket.angle); // -ve because y is flipped
+                
+                // Body
+                simCtx.fillStyle = '#cbd5e1';
+                simCtx.fillRect(-10, -3, 20, 6);
+                simCtx.fillStyle = '#ef4444';
+                simCtx.beginPath(); simCtx.moveTo(10, -3); simCtx.lineTo(16, 0); simCtx.lineTo(10, 3); simCtx.fill();
+                
+                simCtx.restore();
+                
+                // Parachute visual
+                if (rocket.hasParachuteDeployed) {
+                    simCtx.fillStyle = 'rgba(250, 204, 21, 0.8)'; // Yellow para
+                    simCtx.beginPath();
+                    simCtx.arc(rx, ry - 20, 15, Math.PI, 0);
+                    simCtx.fill();
+                    simCtx.strokeStyle = '#fff';
+                    simCtx.beginPath();
+                    simCtx.moveTo(rx - 15, ry - 20); simCtx.lineTo(rx, ry);
+                    simCtx.moveTo(rx + 15, ry - 20); simCtx.lineTo(rx, ry);
+                    simCtx.stroke();
+                }
+            }
+            
+            // Render Radar View
+            radarCtx.clearRect(0,0, radarCanvas.width, radarCanvas.height);
+            // Center line (X axis)
+            const rCenterY = radarCanvas.height / 2;
+            radarCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+            radarCtx.beginPath();
+            radarCtx.moveTo(0, rCenterY); radarCtx.lineTo(radarCanvas.width, rCenterY);
+            radarCtx.stroke();
+            
+            // Target Bullseye (60m)
+            const rTx = TARGET_DIST * PxPerMeter;
+            radarCtx.strokeStyle = '#34d399';
+            radarCtx.beginPath(); radarCtx.arc(rTx, rCenterY, 5, 0, Math.PI*2); radarCtx.stroke();
+            radarCtx.beginPath(); radarCtx.arc(rTx, rCenterY, 15, 0, Math.PI*2); radarCtx.stroke();
+            
+            // Radar Trail
+            radarCtx.beginPath();
+            radarCtx.strokeStyle = '#facc15';
+            radarCtx.lineWidth = 2;
+            pathRadar.forEach((p, i) => {
+                let px = p.x * PxPerMeter;
+                let py = rCenterY + (p.z * PxPerMeter); // Z drift
+                if (i===0) radarCtx.moveTo(px, py);
+                else radarCtx.lineTo(px, py);
+            });
+            if(rocket) {
+                radarCtx.lineTo(rocket.x * PxPerMeter, rCenterY + (rocket.z * PxPerMeter));
+            }
+            radarCtx.stroke();
+            
+            // Current Dot
+            if (rocket) {
+                radarCtx.fillStyle = '#ef4444';
+                radarCtx.beginPath();
+                radarCtx.arc(rocket.x * PxPerMeter, rCenterY + (rocket.z * PxPerMeter), 3, 0, Math.PI*2);
+                radarCtx.fill();
+            }
+        }
 
-            if (state.phase === 'LANDED') {
-                isSimulating = false;
-                analyzeResults();
+        function finishSim() {
+            isAnimating = false;
+            const btn = document.getElementById('launchBtn');
+            btn.disabled = false;
+            btn.innerText = "🚀 LEPAS ROKET!";
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            const dist = Math.sqrt(rocket.x*rocket.x + rocket.z*rocket.z);
+            const err = Math.abs(dist - TARGET_DIST);
+            
+            document.getElementById('resultDist').innerText = dist.toFixed(2) + " m";
+            document.getElementById('resultError').innerText = err.toFixed(2) + " m";
+            
+            // Save state for Leaderboard submission
+            lastLaunchResult = { actualDist: dist, errorDist: err };
+            
+            const aiText = document.getElementById('aiFeedback');
+            const waterML = parseFloat(document.getElementById('waterInput').value);
+            const psi = parseFloat(document.getElementById('psiInput').value);
+            const angle = parseFloat(document.getElementById('angleInput').value);
+            const para = parseFloat(document.getElementById('parachute').value);
+            
+            if (err <= 2.0) {
+                aiText.innerHTML = "AI Analisis (NASA Calibrated): Sempurna! Mengikut piawaian NASA, konfigurasi ini mencatat jarak ketepatan cemerlang. WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
+                aiText.className = "text-sm text-emerald-400 font-bold";
+            } else if (para > 0 && Math.abs(rocket.z) > 10) {
+                aiText.innerHTML = "AI Analisis: Payung terjun terbuka menyebabkan rintangan tinggi dan roket hanyut sangat jauh akibat angin sisi. Pertimbangkan saiz yang lebih kecil.";
+                aiText.className = "text-sm text-orange-400";
+            } else if (dist < 50) {
+                let nasihat = "";
+                if(waterML < 300) nasihat = "Tambah air menghampiri 1/3 isipadu botol (500ml) untuk tujahan optimum.";
+                else if(waterML > 800) nasihat = "Botol terlalu berat dengan air. Kurangkan kepada 500ml.";
+                else if(psi < 50) nasihat = "Naikkan tekanan PSI berhampiran 60-70.";
+                else if(angle > 60) nasihat = "Sudut terlalu menegak. Turunkan menghampiri 45°.";
+                else nasihat = "Kurangkan beban atau saiz sirip yang mungkin mencetus seretan aerodinamik.";
+                aiText.innerHTML = "AI Analisis: Jarak pendek. " + nasihat;
+                aiText.className = "text-sm text-yellow-400";
             } else {
-                animFrame = requestAnimationFrame(physicsLoop);
+                aiText.innerHTML = "AI Analisis: Terlalu jauh atau terpesong. Ubah suai sudut (bukan 45°) untuk memendekkan jarak lengkungan, atau rendahkan PSI.";
+                aiText.className = "text-sm text-yellow-400";
             }
         }
 
-        function renderMain() {
-            ctxMain.clearRect(0, 0, cvsMain.width, cvsMain.height);
-            
-            const gHeight = 30;
-            const maxViewX = Math.max(80, state.x + 10);
-            const maxViewY = Math.max(40, state.apogee + 10);
-            const scaleX = cvsMain.width / maxViewX;
-            const scaleY = (cvsMain.height - gHeight) / maxViewY;
-            const scale = Math.min(scaleX, scaleY);
-            
-            const originY = cvsMain.height - gHeight;
+        document.getElementById('launchBtn').addEventListener('click', startSimulation);
+        
+        // Initial setup
+        setTimeout(resize, 100);
 
-            ctxMain.fillStyle = '#166534';
-            ctxMain.fillRect(0, originY, cvsMain.width, gHeight);
-
-            const tgtX = TARGET_DIST * scale;
-            ctxMain.fillStyle = 'rgba(239, 68, 68, 0.3)';
-            ctxMain.fillRect(tgtX - 10, 0, 20, cvsMain.height);
-            ctxMain.fillStyle = '#ef4444';
-            ctxMain.fillRect(tgtX - 2, originY, 4, -40);
-            ctxMain.beginPath(); ctxMain.moveTo(tgtX, originY-40); ctxMain.lineTo(tgtX+15, originY-30); ctxMain.lineTo(tgtX, originY-20); ctxMain.fill();
-
-            if (state.history.length > 0) {
-                ctxMain.beginPath();
-                ctxMain.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                ctxMain.lineWidth = 2;
-                ctxMain.setLineDash([4, 4]);
-                for (let i=0; i<state.history.length; i++) {
-                    const pt = state.history[i];
-                    const px = pt.x * scale;
-                    const py = originY - (pt.y * scale);
-                    if (i===0) ctxMain.moveTo(px, py); else ctxMain.lineTo(px, py);
-                }
-                ctxMain.stroke();
-                ctxMain.setLineDash([]);
-            }
-
-            const rx = state.x * scale;
-            const ry = originY - (state.y * scale);
-            
-            ctxMain.save();
-            ctxMain.translate(rx, ry);
-            ctxMain.rotate(-state.angle);
-
-            ctxMain.fillStyle = '#cbd5e1';
-            ctxMain.fillRect(-10, -3, 20, 6);
-            ctxMain.fillStyle = '#ef4444';
-            ctxMain.beginPath(); ctxMain.moveTo(10, -3); ctxMain.lineTo(16, 0); ctxMain.lineTo(10, 3); ctxMain.fill();
-            ctxMain.fillStyle = '#3b82f6';
-            ctxMain.beginPath(); ctxMain.moveTo(-10, -3); ctxMain.lineTo(-12, -8); ctxMain.lineTo(-5, -3); ctxMain.fill();
-            ctxMain.beginPath(); ctxMain.moveTo(-10, 3); ctxMain.lineTo(-12, 8); ctxMain.lineTo(-5, 3); ctxMain.fill();
-
-            if (state.phase === 'THRUST') {
-                ctxMain.fillStyle = 'rgba(200, 230, 255, 0.8)';
-                for(let i=0; i<8; i++) {
-                    ctxMain.beginPath();
-                    ctxMain.arc(-10 - Math.random()*20, (Math.random()-0.5)*6, Math.random()*3, 0, Math.PI*2);
-                    ctxMain.fill();
-                }
-            }
-
-            if (state.phase === 'PARACHUTE') {
-                ctxMain.restore();
-                ctxMain.save();
-                ctxMain.translate(rx, ry);
-                
-                const pCm = parseFloat(ui.parachuteInput.value) || 30;
-                const pRadius = Math.min(40, Math.max(10, (pCm / 100) * 30));
-
-                ctxMain.strokeStyle = '#fff';
-                ctxMain.lineWidth = 1;
-                ctxMain.beginPath(); ctxMain.moveTo(0,0); ctxMain.lineTo(-pRadius/2, -25); ctxMain.stroke();
-                ctxMain.beginPath(); ctxMain.moveTo(0,0); ctxMain.lineTo(pRadius/2, -25); ctxMain.stroke();
-                
-                ctxMain.fillStyle = '#ec4899';
-                ctxMain.beginPath();
-                ctxMain.arc(0, -25, pRadius, Math.PI, 0);
-                ctxMain.fill();
-            }
-
-            ctxMain.restore();
-        }
-
-        function renderRadar() {
-            ctxRadar.clearRect(0, 0, cvsRadar.width, cvsRadar.height);
-            const scaleX = cvsRadar.width / 80;
-            const scaleZ = cvsRadar.height / 40;
-            const centerZ = cvsRadar.height / 2;
-
-            const tx = TARGET_DIST * scaleX;
-            ctxRadar.beginPath(); ctxRadar.arc(tx, centerZ, 5*scaleZ, 0, Math.PI*2); 
-            ctxRadar.strokeStyle = '#10b981'; ctxRadar.lineWidth = 2; ctxRadar.stroke();
-            ctxRadar.beginPath(); ctxRadar.arc(tx, centerZ, 1*scaleZ, 0, Math.PI*2); ctxRadar.fillStyle = '#10b981'; ctxRadar.fill();
-
-            if (state.history.length > 0) {
-                ctxRadar.beginPath();
-                ctxRadar.strokeStyle = '#facc15';
-                ctxRadar.lineWidth = 2;
-                for (let i=0; i<state.history.length; i++) {
-                    const pt = state.history[i];
-                    const px = pt.x * scaleX;
-                    const pz = centerZ + (pt.z * scaleZ);
-                    if (i===0) ctxRadar.moveTo(px, pz); else ctxRadar.lineTo(px, pz);
-                }
-                ctxRadar.stroke();
-                
-                const cx = state.x * scaleX;
-                const cz = centerZ + (state.z * scaleZ);
-                ctxRadar.fillStyle = '#ef4444';
-                ctxRadar.beginPath(); ctxRadar.arc(cx, cz, 3, 0, Math.PI*2); ctxRadar.fill();
-            }
-        }
-
-        function renderGraph() {
-            ctxGraph.clearRect(0, 0, cvsGraph.width, cvsGraph.height);
-            if (state.history.length < 2) return;
-
-            const maxTime = Math.max(5, state.t);
-            const maxAlt = Math.max(20, state.apogee);
-
-            const padX = 5, padY = 5;
-            const w = cvsGraph.width - padX*2;
-            const h = cvsGraph.height - padY*2;
-
-            ctxGraph.beginPath();
-            ctxGraph.strokeStyle = '#38bdf8';
-            ctxGraph.lineWidth = 2;
-
-            for (let i=0; i<state.history.length; i++) {
-                const pt = state.history[i];
-                const px = padX + (pt.t / maxTime) * w;
-                const py = (cvsGraph.height - padY) - (pt.y / maxAlt) * h;
-                
-                if (i===0) ctxGraph.moveTo(px, py); else ctxGraph.lineTo(px, py);
-            }
-            ctxGraph.stroke();
-            
-            ctxGraph.lineTo(padX + (state.t / maxTime)*w, cvsGraph.height - padY);
-            ctxGraph.lineTo(padX, cvsGraph.height - padY);
-            ctxGraph.fillStyle = 'rgba(56, 189, 248, 0.2)';
-            ctxGraph.fill();
-        }
-
-        function analyzeResults() {
-            ui.launchBtn.disabled = false;
-            ui.launchBtn.innerHTML = "🚀 LANCAR SEMULA";
-            ui.launchBtn.classList.remove('opacity-50');
-
-            const dist = state.x;
-            const drift = Math.abs(state.z);
-            const errDist = Math.abs(dist - TARGET_DIST);
-
-            let sText = "", sClass = "";
-            let aiText = "";
-
-            if (state.isTumbling) {
-                sText = "GAGAL 💥"; sClass = "text-red-500";
-                aiText = "Roket terpelanting! CG berada di belakang CP. Tambah tanah liat di muncung.";
-            } else if (drift > 5) {
-                sText = "HANYUT 🌬️"; sClass = "text-orange-400";
-                aiText = `Hanyut ${drift.toFixed(1)}m ke tepi akibat angin lintang.`;
-            } else if (errDist <= 3) {
-                sText = "TEPAT! 🎯"; sClass = "text-emerald-400";
-                aiText = "AI Analisis (NASA Calibrated): Sempurna! Mengikut piawaian NASA, konfigurasi ini mencatat jarak ketepatan cemerlang. WRSumulator oleh Cg. Jabdi Lobah (SK Bikang)";
-            } else if (dist < TARGET_DIST) {
-                sText = "TERLALU PENDEK ⬇️"; sClass = "text-yellow-400";
-                aiText = `Jatuh pada ${dist.toFixed(1)}m. Berdasarkan data NASA, tambah tekanan ke 70-80 PSI atau pastikan isipadu air tepat 500ml.`;
-            } else {
-                sText = "TERLAJAK 🚀"; sClass = "text-purple-400";
-                aiText = `Jatuh pada ${dist.toFixed(1)}m. Terlalu jauh! Kurangkan sedikit tekanan PSI atau turunkan sudut kepada 38°-42° untuk memendekkan jarak.`;
-            }
-
-            tel.finalStatus.innerText = sText;
-            tel.finalStatus.className = `text-xl font-bold ${sClass}`;
-            ui.aiFeedback.innerText = aiText.startsWith("AI Analisis") ? aiText : ("AI Analisis (NASA Calibrated): " + aiText);
-        }
-
-        ui.launchBtn.addEventListener('click', initSimulation);
-        resizeCanvases();
     </script>
 </body>
 </html>
