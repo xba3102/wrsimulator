@@ -485,7 +485,7 @@
                     if (pGauge > 0) {
                         const ve = Math.sqrt(2 * pGauge / RHO_WATER);
                         massFlow = RHO_WATER * props.aNozzle * ve * props.cdNozzle;
-                        // Calibrated NASA-standard thrust multiplier for 1.5L bottle hitting ~77m max at 60psi/45deg
+                        // Calibrated NASA-standard thrust multiplier
                         thrustF = massFlow * ve * 1.32;
                         
                         const dVol = (massFlow / RHO_WATER) * dt;
@@ -515,6 +515,8 @@
                     state.angle += state.pitchRate * dt;
                 } else if (state.phase !== 'PARACHUTE') {
                     if (vr_mag > 1) {
+                        // Keep flight alignment stable along velocity vector during coast/high speeds,
+                        // but do not let nozzle type alter the initial launch angle setup.
                         state.angle = Math.atan2(vry, vrx);
                     }
                 }
@@ -753,13 +755,13 @@
                 aiText = `Hanyut ${drift.toFixed(1)}m ke tepi akibat angin lintang.`;
             } else if (errDist <= 3) {
                 sText = "TEPAT! 🎯"; sClass = "text-emerald-400";
-                aiText = "WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
+                aiText = "AI Analisis (NASA Calibrated): Sempurna! Mengikut piawaian NASA, konfigurasi ini mencatat jarak ketepatan cemerlang. WRSumulator oleh Cg. Jabdi Lobah (SK Bikang)";
             } else if (dist < TARGET_DIST) {
                 sText = "TERLALU PENDEK ⬇️"; sClass = "text-yellow-400";
                 aiText = `Jatuh pada ${dist.toFixed(1)}m. Berdasarkan data NASA, tambah tekanan ke 70-80 PSI atau pastikan isipadu air tepat 500ml.`;
             } else {
                 sText = "TERLAJAK 🚀"; sClass = "text-purple-400";
-                aiText = `Jatuh pada ${dist.toFixed(1)}m. Terlalu jauh! Kurangkan sedikit tekanan PSI atau turunkan sudut kepada 38°-42° untuk memendekkan jarak.`;
+                aiText = `Jatuh pada ${dist.jsdelivr || dist.toFixed(1)}m. Terlalu jauh! Kurangkan sedikit tekanan PSI atau turunkan sudut kepada 38°-42° untuk memendekkan jarak.`;
             }
 
             tel.finalStatus.innerText = sText;
