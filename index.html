@@ -89,8 +89,8 @@
                 <div>
                     <label class="flex justify-between text-xs mb-1 text-slate-300">Sudut Lancar (°) [Optimum: 45°]</label>
                     <div class="flex items-center gap-2">
-                        <input type="range" id="angle" min="10" max="80" value="45" class="w-full flex-1">
-                        <input type="number" id="angleInput" min="10" max="80" value="45" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-emerald-400 text-xs font-bold text-center">
+                        <input type="range" id="angle" min="10" max="90" value="45" class="w-full flex-1">
+                        <input type="number" id="angleInput" min="10" max="90" value="45" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-emerald-400 text-xs font-bold text-center">
                     </div>
                 </div>
 
@@ -145,12 +145,8 @@
                         </select>
                     </div>
                     <div class="flex-1">
-                        <label class="flex justify-between text-xs mb-1 text-slate-300">Payung Terjun</label>
-                        <select id="parachuteType" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-pink-400 text-xs font-bold">
-                            <option value="0">Tiada</option>
-                            <option value="30">Kecil (30cm)</option>
-                            <option value="60">Besar (60cm)</option>
-                        </select>
+                        <label class="flex justify-between text-xs mb-1 text-slate-300">Payung Terjun (cm)</label>
+                        <input type="number" id="parachuteInput" min="0" max="100" value="0" class="w-full px-1 py-1 bg-slate-800 border border-slate-600 rounded text-pink-400 text-xs font-bold text-center" placeholder="0-100cm">
                     </div>
                 </div>
 
@@ -171,7 +167,7 @@
             </div>
             
             <div id="aiFeedback" class="mt-2 text-xs text-yellow-400 p-2 bg-slate-800 rounded border border-slate-600">
-                AI: Kalibrasi NASA aktif. 60 PSI / 45° / ~500ml air menghasilkan sekitar 75-77m jarak optimum. Sasaran 60m boleh dicapai dengan pelarasan teliti.
+                AI: Kalibrasi NASA aktif. 60 PSI / 45° / ~500ml air menghasilkan jarak optimum. Sasaran 60m boleh dicapai dengan pelarasan teliti.
             </div>
         </div>
 
@@ -244,7 +240,7 @@
             finLenInput: document.getElementById('finLenInput'),
             finWidInput: document.getElementById('finWidInput'),
             nozzleType: document.getElementById('nozzleType'),
-            parachuteType: document.getElementById('parachuteType'),
+            parachuteInput: document.getElementById('parachuteInput'),
             railLen: document.getElementById('railLen'),
             railLenInput: document.getElementById('railLenInput'),
             launchBtn: document.getElementById('launchBtn'),
@@ -293,7 +289,7 @@
             mEmpty: 0, mClay: 0, mFins: 0,
             aNozzle: 0, cdNozzle: 0.82,
             aFins: 0, aNose: 0.005,
-            cg: 0, cp: 0, parachuteArea: 0
+            cg: 0, cp: 0, parachuteArea: 0, parachuteMass: 0
         };
 
         function syncInputs(slider, input) {
@@ -306,7 +302,7 @@
         syncInputs(ui.railLen, ui.railLenInput);
         
         [ui.windInput, ui.windDir, ui.weightInput, ui.clayInput, 
-         ui.finLenInput, ui.finWidInput, ui.nozzleType, ui.parachuteType].forEach(el => {
+         ui.finLenInput, ui.finWidInput, ui.nozzleType, ui.parachuteInput].forEach(el => {
             el.addEventListener('change', updateBlueprint);
             el.addEventListener('input', updateBlueprint);
         });
@@ -341,6 +337,10 @@
             const mFins = (aFin * 0.001 * 1200) * 3;
             const mWater = vWater * RHO_WATER;
             
+            // Parachute weight estimation: 100cm diameter parachute weighs ~50g (0.05kg) scaling quadratically
+            const pSizeCm = Math.max(0, parseFloat(ui.parachuteInput.value) || 0);
+            const mParachute = (Math.pow(pSizeCm / 100, 2)) * 0.05;
+
             const aBottleFront = Math.PI * Math.pow(0.045, 2);
             const aFinsFront = 3 * (finL * 0.001);
             
@@ -349,8 +349,8 @@
             const hWater = waterRatio * hBottle; 
             const pWater = hBottle - (hWater / 2);
 
-            const totalMass = mBottle + mClay + mFins + mWater;
-            let cg = (mClay*0 + mBottle*0.165 + mFins*0.30 + mWater*pWater) / totalMass;
+            const totalMass = mBottle + mClay + mFins + mWater + mParachute;
+            let cg = (mClay*0 + mBottle*0.165 + mFins*0.30 + mWater*pWater + mParachute*0.25) / totalMass;
             
             const areaNose = 0.005;
             const areaFins = aFin * 2;
@@ -431,8 +431,9 @@
             props.aFins = aFin * 3;
             props.aNozzle = ui.nozzleType.value === 'gardena' ? (Math.PI * Math.pow(0.0045, 2)) : (Math.PI * Math.pow(0.0105, 2));
             
-            const pSize = parseFloat(ui.parachuteType.value) / 100;
-            props.parachuteArea = pSize > 0 ? (Math.PI * Math.pow(pSize/2, 2)) : 0;
+            const pSizeM = pSizeCm / 100;
+            props.parachuteArea = pSizeM > 0 ? (Math.PI * Math.pow(pSizeM/2, 2)) : 0;
+            props.parachuteMass = mParachute;
             
             state.angle = parseFloat(ui.angleInput.value) * (Math.PI/180);
             renderMain();
@@ -450,7 +451,7 @@
             state = {
                 t: 0, x: 0, y: 0, z: 0,
                 vx: 0, vy: 0, vz: 0,
-                mass: props.mEmpty + props.mClay + props.mFins + (vWaterInit * RHO_WATER),
+                mass: props.mEmpty + props.mClay + props.mFins + props.parachuteMass + (vWaterInit * RHO_WATER),
                 volWater: vWaterInit,
                 pressure: pAbsInit,
                 phase: 'BERSEDIA',
@@ -521,14 +522,10 @@
                 let dragArea = props.aFrontal;
                 let Cd = 0.35;
                 
-                // Check if rocket is still guided by the rail
                 const targetRailLen = parseFloat(ui.railLenInput.value);
                 if (state.onRail) {
-                    // While on rail, motion is constrained strictly to launch angle vector
-                    // Add slight friction loss proportional to rail length and weight
                     const railFriction = 1.5 * (targetRailLen / 1.0);
                     thrustF = Math.max(0, thrustF - railFriction);
-                    
                     state.angle = parseFloat(ui.angleInput.value) * (Math.PI/180);
                 } else if (state.isTumbling) {
                     dragArea = 0.05;
@@ -546,8 +543,8 @@
                 }
 
                 if (state.phase === 'PARACHUTE') {
-                    dragArea = props.parachuteArea;
-                    Cd = 1.5;
+                    dragArea = props.aFrontal + props.parachuteArea;
+                    Cd = 1.6;
                     state.angle = -Math.PI/2;
                 }
 
@@ -690,14 +687,17 @@
                 ctxMain.save();
                 ctxMain.translate(rx, ry);
                 
+                const pCm = parseFloat(ui.parachuteInput.value) || 30;
+                const pRadius = Math.min(40, Math.max(10, (pCm / 100) * 30));
+
                 ctxMain.strokeStyle = '#fff';
                 ctxMain.lineWidth = 1;
-                ctxMain.beginPath(); ctxMain.moveTo(0,0); ctxMain.lineTo(-10, -20); ctxMain.stroke();
-                ctxMain.beginPath(); ctxMain.moveTo(0,0); ctxMain.lineTo(10, -20); ctxMain.stroke();
+                ctxMain.beginPath(); ctxMain.moveTo(0,0); ctxMain.lineTo(-pRadius/2, -25); ctxMain.stroke();
+                ctxMain.beginPath(); ctxMain.moveTo(0,0); ctxMain.lineTo(pRadius/2, -25); ctxMain.stroke();
                 
                 ctxMain.fillStyle = '#ec4899';
                 ctxMain.beginPath();
-                ctxMain.arc(0, -20, 15, Math.PI, 0);
+                ctxMain.arc(0, -25, pRadius, Math.PI, 0);
                 ctxMain.fill();
             }
 
