@@ -153,6 +153,15 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Launch Rail Length Variable -->
+                <div>
+                    <label class="flex justify-between text-xs mb-1 text-slate-300">Panjang Rail Pelancar (m) [Geseran]</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" id="railLen" min="0.5" max="3.0" step="0.1" value="1.0" class="w-full flex-1">
+                        <input type="number" id="railLenInput" min="0.5" max="3.0" step="0.1" value="1.0" class="w-16 px-1 py-1 bg-slate-800 border border-slate-600 rounded text-amber-400 text-xs font-bold text-center">
+                    </div>
+                </div>
             </div>
 
             <div class="mt-2">
@@ -236,6 +245,8 @@
             finWidInput: document.getElementById('finWidInput'),
             nozzleType: document.getElementById('nozzleType'),
             parachuteType: document.getElementById('parachuteType'),
+            railLen: document.getElementById('railLen'),
+            railLenInput: document.getElementById('railLenInput'),
             launchBtn: document.getElementById('launchBtn'),
             aiFeedback: document.getElementById('aiFeedback'),
             stabilityWarning: document.getElementById('stabilityWarning')
@@ -292,6 +303,7 @@
         syncInputs(ui.water, ui.waterInput);
         syncInputs(ui.psi, ui.psiInput);
         syncInputs(ui.angle, ui.angleInput);
+        syncInputs(ui.railLen, ui.railLenInput);
         
         [ui.windInput, ui.windDir, ui.weightInput, ui.clayInput, 
          ui.finLenInput, ui.finWidInput, ui.nozzleType, ui.parachuteType].forEach(el => {
@@ -432,7 +444,8 @@
             const vWaterInit = parseFloat(ui.waterInput.value) / 1000000;
             const psi = parseFloat(ui.psiInput.value);
             const pAbsInit = (psi * 6894.76) + P_ATM;
-            const angleRad = parseFloat(ui.angleInput.value) * (Math.PI/180);
+            const angleVal = parseFloat(ui.angleInput.value);
+            const angleRad = angleVal * (Math.PI/180);
             
             state = {
                 t: 0, x: 0, y: 0, z: 0,
@@ -443,7 +456,8 @@
                 phase: 'BERSEDIA',
                 isTumbling: ui.stabilityWarning.innerText.includes("TIDAK"),
                 apogee: 0, history: [],
-                angle: angleRad, pitchRate: 0
+                angle: angleRad, pitchRate: 0,
+                onRail: true, railDistance: 0
             };
 
             tel.apogeeText.innerText = "Apogee: -";
@@ -485,7 +499,6 @@
                     if (pGauge > 0) {
                         const ve = Math.sqrt(2 * pGauge / RHO_WATER);
                         massFlow = RHO_WATER * props.aNozzle * ve * props.cdNozzle;
-                        // Calibrated NASA-standard thrust multiplier
                         thrustF = massFlow * ve * 1.32;
                         
                         const dVol = (massFlow / RHO_WATER) * dt;
@@ -508,15 +521,22 @@
                 let dragArea = props.aFrontal;
                 let Cd = 0.35;
                 
-                if (state.isTumbling) {
+                // Check if rocket is still guided by the rail
+                const targetRailLen = parseFloat(ui.railLenInput.value);
+                if (state.onRail) {
+                    // While on rail, motion is constrained strictly to launch angle vector
+                    // Add slight friction loss proportional to rail length and weight
+                    const railFriction = 1.5 * (targetRailLen / 1.0);
+                    thrustF = Math.max(0, thrustF - railFriction);
+                    
+                    state.angle = parseFloat(ui.angleInput.value) * (Math.PI/180);
+                } else if (state.isTumbling) {
                     dragArea = 0.05;
                     Cd = 1.2;
                     state.pitchRate += 10 * dt;
                     state.angle += state.pitchRate * dt;
                 } else if (state.phase !== 'PARACHUTE') {
                     if (vr_mag > 1) {
-                        // Keep flight alignment stable along velocity vector during coast/high speeds,
-                        // but do not let nozzle type alter the initial launch angle setup.
                         state.angle = Math.atan2(vry, vrx);
                     }
                 }
@@ -554,6 +574,14 @@
                 state.z += state.vz * dt;
                 state.t += dt;
 
+                if (state.onRail) {
+                    const currentDistFromPad = Math.sqrt(state.x**2 + state.y**2);
+                    state.railDistance = currentDistFromPad;
+                    if (state.railDistance >= targetRailLen) {
+                        state.onRail = false;
+                    }
+                }
+
                 if (state.y > state.apogee) {
                     state.apogee = state.y;
                     tel.apogeeText.innerText = `Apogee: ${state.apogee.toFixed(1)}m`;
@@ -576,7 +604,8 @@
             tel.dist.innerText = state.x.toFixed(1);
             
             let phaseColor = 'text-blue-400';
-            if(state.isTumbling) { tel.phase.innerText = 'TERPELANTING!'; phaseColor = 'text-red-500'; }
+            if(state.onRail) { tel.phase.innerText = 'PADA RAIL (GUIDED)'; phaseColor = 'text-amber-400'; }
+            else if(state.isTumbling) { tel.phase.innerText = 'TERPELANTING!'; phaseColor = 'text-red-500'; }
             else if(state.phase === 'THRUST') { tel.phase.innerText = 'TUJAHAN (THRUST)'; phaseColor = 'text-yellow-400'; }
             else if(state.phase === 'COASTING') { tel.phase.innerText = 'MELUNCUR (COAST)'; phaseColor = 'text-cyan-300'; }
             else if(state.phase === 'PARACHUTE') { tel.phase.innerText = 'PAYUNG TERJUN'; phaseColor = 'text-pink-400'; }
@@ -761,7 +790,7 @@
                 aiText = `Jatuh pada ${dist.toFixed(1)}m. Berdasarkan data NASA, tambah tekanan ke 70-80 PSI atau pastikan isipadu air tepat 500ml.`;
             } else {
                 sText = "TERLAJAK 🚀"; sClass = "text-purple-400";
-                aiText = `Jatuh pada ${dist.jsdelivr || dist.toFixed(1)}m. Terlalu jauh! Kurangkan sedikit tekanan PSI atau turunkan sudut kepada 38°-42° untuk memendekkan jarak.`;
+                aiText = `Jatuh pada ${dist.toFixed(1)}m. Terlalu jauh! Kurangkan sedikit tekanan PSI atau turunkan sudut kepada 38°-42° untuk memendekkan jarak.`;
             }
 
             tel.finalStatus.innerText = sText;
