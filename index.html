@@ -128,11 +128,18 @@
                 <!-- Hardware (Nozzle, Rail, Parachute) -->
                 <div class="mt-2 space-y-3">
                     <div>
-                        <label class="text-sm text-slate-300 block mb-1">Jenis Nozzle</label>
-                        <select id="nozzleType" class="w-full px-3 py-2 bg-slate-800 border rounded text-gray-300 text-sm">
-                            <option value="standard">Standard (Botol Biasa 9mm)</option>
-                            <option value="gardena" selected>Gardena (Pelepasan Lancar)</option>
-                        </select>
+                        <label class="flex justify-between text-sm mb-1 text-slate-300">Jarak Sasaran (Meter)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="targetDist" min="10" max="100" step="5" value="60" class="w-full flex-1">
+                            <input type="number" id="targetDistInput" min="10" max="100" value="60" class="w-20 px-2 py-1 bg-slate-800 border rounded text-purple-400 font-bold text-center">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-sm mb-1 text-slate-300">Diameter Nozzle (mm)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="nozzleDia" min="5" max="25" step="0.5" value="9.0" class="w-full flex-1">
+                            <input type="number" id="nozzleDiaInput" min="5" max="25" step="0.5" value="9.0" class="w-20 px-2 py-1 bg-slate-800 border rounded text-gray-300 font-bold text-center">
+                        </div>
                     </div>
                     <div>
                         <label class="text-sm text-slate-300 block mb-1">Panjang Rail Pelepasan (Meter)</label>
@@ -195,7 +202,7 @@
                 <div class="glass-panel p-4 rounded-xl text-center grid grid-cols-3 gap-2">
                     <div>
                         <p class="text-xs text-slate-400">Sasaran Z-X</p>
-                        <p class="text-lg font-bold text-white">60.0 m</p>
+                        <p id="targetDispUI" class="text-lg font-bold text-white">60.0 m</p>
                     </div>
                     <div>
                         <p class="text-xs text-slate-400">Jarak Tiba</p>
@@ -249,7 +256,7 @@
 
         // Global Firebase Vars
         let db, auth, currentUser;
-        const TARGET_DIST = 60;
+        let currentTarget = 60; // Sasaran dinamik
         let lastLaunchResult = null; // Menyimpan rekod pelancaran terakhir pemain
 
         // Firebase Init - menggunakan global var jika ada
@@ -411,13 +418,23 @@
             const s = document.getElementById(sId);
             const i = document.getElementById(iId);
             if(s && i) {
-                s.addEventListener('input', () => { i.value = s.value; if(!isAnimating) renderFrame(); });
-                i.addEventListener('input', () => { s.value = i.value; if(!isAnimating) renderFrame(); });
+                s.addEventListener('input', () => { 
+                    i.value = s.value; 
+                    if (sId === 'targetDist') { currentTarget = parseFloat(s.value); updateLeaderboardUI(); }
+                    if(!isAnimating) renderFrame(); 
+                });
+                i.addEventListener('input', () => { 
+                    s.value = i.value; 
+                    if (sId === 'targetDist') { currentTarget = parseFloat(i.value); updateLeaderboardUI(); }
+                    if(!isAnimating) renderFrame(); 
+                });
             }
         }
         linkSlider('water', 'waterInput');
         linkSlider('psi', 'psiInput');
         linkSlider('angle', 'angleInput');
+        linkSlider('targetDist', 'targetDistInput');
+        linkSlider('nozzleDia', 'nozzleDiaInput');
         
         document.getElementById('wind').addEventListener('input', (e) => {
             document.getElementById('windDisp').innerText = e.target.value + " m/s";
@@ -433,6 +450,9 @@
             if (isAnimating) return;
             
             // Dapatkan input pemain
+            currentTarget = parseFloat(document.getElementById('targetDistInput').value);
+            document.getElementById('targetDispUI').innerText = currentTarget.toFixed(1) + " m";
+            
             const waterML = parseFloat(document.getElementById('waterInput').value);
             const psi = parseFloat(document.getElementById('psiInput').value);
             const angleDeg = parseFloat(document.getElementById('angleInput').value);
@@ -440,46 +460,51 @@
             const clay = parseFloat(document.getElementById('clayInput').value);
             const finL = parseFloat(document.getElementById('finLenInput').value);
             const finW = parseFloat(document.getElementById('finWidInput').value);
-            const nozzle = document.getElementById('nozzleType').value;
+            const nozzleDiaMM = parseFloat(document.getElementById('nozzleDiaInput').value);
             const railLen = parseFloat(document.getElementById('rail').value);
             const windSpd = parseFloat(document.getElementById('wind').value);
             const windDir = parseFloat(document.getElementById('windDir').value);
             
             // Jisim roket = Botol + Tanah Liat + Air (awalan) + Sirip
-            // 1ml air = 1g
             const dryMass = (bWeight + clay + ((finL * finW * 0.5)*0.1*1.2*3)) / 1000; // dalam KG
             const initialWaterMass = waterML / 1000; 
             
-            // NASA Calibration parameters untuk 60 PSI, 1/3 air, 45 deg = 77m.
+            // Pengiraan Fizik Nozzle & Tujahan Bendalir Realistik
             const pPascal = psi * 6894.76;
-            const volM3 = 0.0015; // 1.5L bottle
-            const nozzleArea = nozzle === 'gardena' ? 0.0001 : 0.000064; // Gardena luang lebih besar sedikit
+            const waterDensity = 1000; // kg/m^3
+            const nozzleArea = Math.PI * Math.pow((nozzleDiaMM / 1000) / 2, 2); // Luas (m^2)
             
-            // Pengiraan momentum ideal berdasarkan tenaga termampat (Simplified adiabatic expansion)
-            // Energy = P * V_air
-            const airVol = volM3 - (initialWaterMass / 1000); // isipadu udara
-            let availableEnergy = 0;
-            if (airVol > 0 && initialWaterMass > 0) {
-                 availableEnergy = pPascal * airVol * Math.log(volM3 / airVol);
-            }
+            // Daya Tujahan (Thrust Force: F = 2 * P * A)
+            const thrustForce = 2 * pPascal * nozzleArea;
             
-            // Kecekapan Nozzle (Gardena = lancar, tiada sangkut)
-            const nozzleEfficiency = nozzle === 'gardena' ? 0.85 : 0.70;
+            // Kadar Aliran Jisim (Mass Flow Rate: m_dot = A * sqrt(2 * P * rho))
+            const massFlowRate = nozzleArea * Math.sqrt(2 * pPascal * waterDensity);
             
-            // Friction Rail: Rail panjang memberi kestabilan arah tapi mencuri sedikit tenaga kinetik awal
-            const railFrictionLoss = railLen * 2.5; // Joule lost per meter
+            // Masa Tujahan Semasa Ada Air (t = Jisim / Kadar Aliran)
+            let thrustDuration = massFlowRate > 0 ? initialWaterMass / massFlowRate : 0;
             
-            let kineticEnergy = (availableEnergy * nozzleEfficiency) - railFrictionLoss;
-            if (kineticEnergy < 0) kineticEnergy = 0;
+            // Kecekapan Nozzle (Diameter optimum untuk keseimbangan ialah 9mm-12mm)
+            // Nozzle terlalu besar: Tekanan terlepas terlalu cepat tanpa tujahan padu.
+            // Nozzle terlalu kecil: Aliran tersekat (choked flow) & geseran tinggi.
+            let nozzleEfficiency = 0.85 - (Math.abs(nozzleDiaMM - 11) * 0.02);
+            if (nozzleEfficiency < 0.4) nozzleEfficiency = 0.4; // Had paling rendah
             
-            // V = sqrt(2 * KE / mass_purata)
-            const avgMass = dryMass + (initialWaterMass / 2); // Jisim purata semasa pelepasan
-            let vInitial = avgMass > 0 ? Math.sqrt((2 * kineticEnergy) / avgMass) : 0;
+            // Jumlah Momentum/Impuls = Daya * Masa * Kecekapan
+            // Kami darabkan dengan 1.45 untuk merangkumi fasa pengembangan udara mampat (Air Thrust Phase) selepas air habis
+            let totalImpulse = thrustForce * thrustDuration * nozzleEfficiency * 1.45;
             
-            // Faktor botol kosong atau penuh
-            if (waterML < 100 || waterML > 1300) vInitial *= 0.2; // Gagal terbang tinggi
+            // Geseran Rel
+            const railFrictionLossVelocity = railLen * 0.5; // Kelajuan m/s hilang mengikut panjang rel
             
-            // Sudut 90 akan menegak. Arah sentiasa 'Timur' iaitu +X.
+            // V = Impuls / Jisim Purata Semasa Pelepasan
+            const avgMass = dryMass + (initialWaterMass / 2); 
+            let vInitial = avgMass > 0 ? (totalImpulse / avgMass) : 0;
+            vInitial -= railFrictionLossVelocity;
+            
+            // Faktor kegagalan air melampau penuh/kosong
+            if (waterML < 100 || waterML > 1300) vInitial *= 0.2; 
+            if (vInitial < 0) vInitial = 0;
+            
             const rad = angleDeg * Math.PI / 180;
             
             rocket = {
@@ -596,7 +621,7 @@
             }
             
             // Target
-            const tx = TARGET_DIST * PxPerMeter;
+            const tx = currentTarget * PxPerMeter;
             simCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
             simCtx.fillRect(tx - 10, simCanvas.height - groundH, 20, 5);
             simCtx.fillStyle = '#ef4444';
@@ -654,8 +679,8 @@
             radarCtx.moveTo(0, rCenterY); radarCtx.lineTo(radarCanvas.width, rCenterY);
             radarCtx.stroke();
             
-            // Target Bullseye (60m)
-            const rTx = TARGET_DIST * PxPerMeter;
+            // Target Bullseye
+            const rTx = currentTarget * PxPerMeter;
             radarCtx.strokeStyle = '#34d399';
             radarCtx.beginPath(); radarCtx.arc(rTx, rCenterY, 5, 0, Math.PI*2); radarCtx.stroke();
             radarCtx.beginPath(); radarCtx.arc(rTx, rCenterY, 15, 0, Math.PI*2); radarCtx.stroke();
@@ -692,7 +717,7 @@
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
             
             const dist = Math.sqrt(rocket.x*rocket.x + rocket.z*rocket.z);
-            const err = Math.abs(dist - TARGET_DIST);
+            const err = Math.abs(dist - currentTarget);
             
             document.getElementById('resultDist').innerText = dist.toFixed(2) + " m";
             document.getElementById('resultError').innerText = err.toFixed(2) + " m";
