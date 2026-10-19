@@ -148,8 +148,8 @@
                 </div>
 
                 <div class="mt-2 border-t border-slate-700 pt-3">
-                    <label class="text-sm mb-1 text-slate-300 block">Kelajuan Angin (m/s)</label>
-                    <input type="range" id="wind" min="0" max="15" value="0" class="w-full">
+                    <label class="text-sm mb-1 text-slate-300 block">Kelajuan Angin (m/s & km/j)</label>
+                    <input type="range" id="wind" min="0" max="15" step="0.1" value="0" class="w-full">
                     <div class="flex justify-between items-center mt-1">
                         <select id="windDir" class="px-2 py-1 bg-slate-800 border rounded text-gray-300 text-sm">
                             <option value="0">Utara</option>
@@ -161,7 +161,7 @@
                             <option value="270">Barat</option>
                             <option value="315">Barat Laut</option>
                         </select>
-                        <span class="text-sm text-gray-400 font-bold" id="windDisp">0 m/s</span>
+                        <span class="text-sm text-gray-400 font-bold" id="windDisp">Auto (Rawak)</span>
                     </div>
                 </div>
 
@@ -257,6 +257,7 @@
         let lastLaunchResult = null; 
         let offlineScores = []; 
         let isFirebaseActive = false;
+        let userSetWind = false; // Penanda untuk mod angin rawak atau tetap
 
         // Custom Toast Function (Replaces alert)
         window.showCustomMsg = function(msg, isError = false) {
@@ -420,7 +421,17 @@
         
         document.getElementById('rail').addEventListener('input', e => { document.getElementById('railDisp').innerText = e.target.value; });
         document.getElementById('parachute').addEventListener('input', e => { document.getElementById('paraDisp').innerText = e.target.value; });
-        document.getElementById('wind').addEventListener('input', e => { document.getElementById('windDisp').innerText = e.target.value + " m/s"; });
+        
+        // Mod angin interaktif (Batal rawak jika pengguna set sendiri)
+        document.getElementById('wind').addEventListener('input', e => { 
+            const ms = parseFloat(e.target.value);
+            const kmh = ms * 3.6;
+            document.getElementById('windDisp').innerText = ms.toFixed(1) + " m/s (" + kmh.toFixed(1) + " km/j)"; 
+            userSetWind = true; 
+        });
+        document.getElementById('windDir').addEventListener('change', () => { 
+            userSetWind = true; 
+        });
 
         const simCanvas = document.getElementById('simCanvas');
         const radarCanvas = document.getElementById('radarCanvas');
@@ -453,6 +464,20 @@
         function startSimulation() {
             if(isAnimating) return;
             
+            // --- JANA ANGIN RAWAK (Jika pengguna tidak set secara manual) ---
+            if (!userSetWind) {
+                // Rawak antara 3 km/j hingga 10 km/j
+                const randKmh = Math.random() * (10 - 3) + 3; 
+                const randMs = randKmh / 3.6;
+                const dirs = [0, 45, 90, 135, 180, 225, 270, 315];
+                const randDir = dirs[Math.floor(Math.random() * dirs.length)];
+                
+                // Kemas kini UI Slider ke nilai rawak tersebut
+                document.getElementById('wind').value = randMs.toFixed(1);
+                document.getElementById('windDir').value = randDir;
+                document.getElementById('windDisp').innerText = randMs.toFixed(1) + " m/s (" + randKmh.toFixed(1) + " km/j)";
+            }
+
             // Get Variables
             const target = parseFloat(document.getElementById('targetDistInput').value);
             currentTarget = target;
