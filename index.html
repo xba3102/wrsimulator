@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulasi Roket Air Pro</title>
+    <title>WRSimulator Pro - Edisi Stabil</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -29,7 +29,7 @@
         .radar-container {
             width: 100%;
             height: 150px;
-            background-color: #064e3b; /* Dark green for radar ground */
+            background-color: #064e3b;
             border-radius: 0.75rem;
             overflow: hidden;
             border: 2px solid #34d399;
@@ -45,28 +45,27 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .leaderboard-row:nth-child(even) {
-            background-color: rgba(255,255,255,0.05);
-        }
-        /* Custom Scrollbar for panel */
-        .scroll-panel::-webkit-scrollbar {
-            width: 6px;
-        }
-        .scroll-panel::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        .scroll-panel::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 3px;
+        .scroll-panel::-webkit-scrollbar { width: 6px; }
+        .scroll-panel::-webkit-scrollbar-track { background: #1e293b; }
+        .scroll-panel::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        
+        /* Custom Toast Msg */
+        #toastMsg {
+            transition: all 0.3s ease-in-out;
+            z-index: 50;
         }
     </style>
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center">
 
+    <div id="toastMsg" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl font-bold opacity-0 translate-y-[-100%] pointer-events-none">
+        Mesej Sistem
+    </div>
+
     <div class="max-w-7xl w-full">
         <header class="mb-6 text-center">
-            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">WRSimulator Pro (NASA Calibrated)</h1>
-            <p class="text-slate-400">Oleh Cg. Jabdi Lobah (SK Bikang) | Sasaran: 60 Meter</p>
+            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">WRSimulator Pro (Fizik Nyata)</h1>
+            <p class="text-slate-400">Oleh Cg. Jabdi Lobah (SK Bikang) | NASA Calibrated</p>
         </header>
 
         <div class="flex flex-col lg:flex-row gap-6">
@@ -74,7 +73,14 @@
             <div class="glass-panel p-6 rounded-xl w-full lg:w-1/3 flex flex-col gap-4 h-[80vh] overflow-y-auto scroll-panel">
                 <h2 class="text-xl font-bold text-blue-300 border-b border-slate-600 pb-2 sticky top-0 bg-slate-900/90 py-2 z-10">Panel Kawalan</h2>
                 
-                <!-- Water -->
+                <div>
+                    <label class="flex justify-between text-sm mb-1 text-slate-300">Sasaran Jarak (Meter)</label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="targetDist" min="10" max="100" step="5" value="60" class="w-full flex-1">
+                        <input type="number" id="targetDistInput" min="10" max="100" value="60" class="w-20 px-2 py-1 bg-slate-800 border rounded text-purple-400 font-bold text-center">
+                    </div>
+                </div>
+
                 <div>
                     <label class="flex justify-between text-sm mb-1 text-slate-300">Isipadu Air (ml)</label>
                     <div class="flex items-center gap-3">
@@ -83,7 +89,6 @@
                     </div>
                 </div>
 
-                <!-- PSI -->
                 <div>
                     <label class="flex justify-between text-sm mb-1 text-slate-300">Tekanan (PSI)</label>
                     <div class="flex items-center gap-3">
@@ -92,7 +97,6 @@
                     </div>
                 </div>
 
-                <!-- Angle -->
                 <div>
                     <label class="flex justify-between text-sm mb-1 text-slate-300">Sudut Pelancaran (°)</label>
                     <div class="flex items-center gap-3">
@@ -101,10 +105,9 @@
                     </div>
                 </div>
 
-                <!-- Weights -->
-                <div class="flex gap-4">
+                <div class="flex gap-4 border-t border-slate-700 pt-3">
                     <div class="flex-1">
-                        <label class="text-sm mb-1 text-slate-300 block">Botol Kosong (g)</label>
+                        <label class="text-sm mb-1 text-slate-300 block">Berat Botol (g)</label>
                         <input type="number" id="weightInput" min="10" max="200" value="50" class="w-full px-2 py-1 bg-slate-800 border rounded text-orange-400 font-bold text-center">
                     </div>
                     <div class="flex-1">
@@ -113,7 +116,6 @@
                     </div>
                 </div>
 
-                <!-- Fins -->
                 <div class="flex gap-4 mt-2">
                     <div class="flex-1">
                         <label class="text-sm mb-1 text-slate-300 block">Pjg Sirip (cm)</label>
@@ -125,15 +127,7 @@
                     </div>
                 </div>
 
-                <!-- Hardware (Nozzle, Rail, Parachute) -->
-                <div class="mt-2 space-y-3">
-                    <div>
-                        <label class="flex justify-between text-sm mb-1 text-slate-300">Jarak Sasaran (Meter)</label>
-                        <div class="flex items-center gap-3">
-                            <input type="range" id="targetDist" min="10" max="100" step="5" value="60" class="w-full flex-1">
-                            <input type="number" id="targetDistInput" min="10" max="100" value="60" class="w-20 px-2 py-1 bg-slate-800 border rounded text-purple-400 font-bold text-center">
-                        </div>
-                    </div>
+                <div class="mt-2 space-y-3 border-t border-slate-700 pt-3">
                     <div>
                         <label class="flex justify-between text-sm mb-1 text-slate-300">Diameter Nozzle (mm)</label>
                         <div class="flex items-center gap-3">
@@ -142,7 +136,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-sm text-slate-300 block mb-1">Panjang Rail Pelepasan (Meter)</label>
+                        <label class="text-sm text-slate-300 block mb-1">Panjang Rail (Meter)</label>
                         <input type="range" id="rail" min="0" max="3" step="0.5" value="1.0" class="w-full">
                         <div class="text-xs text-right text-slate-400"><span id="railDisp">1.0</span> m</div>
                     </div>
@@ -153,22 +147,21 @@
                     </div>
                 </div>
 
-                <!-- Wind -->
                 <div class="mt-2 border-t border-slate-700 pt-3">
                     <label class="text-sm mb-1 text-slate-300 block">Kelajuan Angin (m/s)</label>
-                    <input type="range" id="wind" min="0" max="15" value="2" class="w-full">
+                    <input type="range" id="wind" min="0" max="15" value="0" class="w-full">
                     <div class="flex justify-between items-center mt-1">
                         <select id="windDir" class="px-2 py-1 bg-slate-800 border rounded text-gray-300 text-sm">
                             <option value="0">Utara</option>
                             <option value="45">Timur Laut</option>
-                            <option value="90" selected>Timur (Bantuan)</option>
+                            <option value="90" selected>Timur</option>
                             <option value="135">Tenggara</option>
                             <option value="180">Selatan</option>
                             <option value="225">Barat Daya</option>
-                            <option value="270">Barat (Rintangan)</option>
+                            <option value="270">Barat</option>
                             <option value="315">Barat Laut</option>
                         </select>
-                        <span class="text-sm text-gray-400 font-bold" id="windDisp">2 m/s</span>
+                        <span class="text-sm text-gray-400 font-bold" id="windDisp">0 m/s</span>
                     </div>
                 </div>
 
@@ -181,19 +174,24 @@
 
             <div class="w-full lg:w-2/3 flex flex-col gap-4">
                 
-                <!-- Side View Canvas -->
                 <div class="canvas-container" id="canvasContainer">
                     <canvas id="simCanvas"></canvas>
                     
-                    <!-- HUD Telemetry overlay -->
-                    <div class="absolute top-2 left-2 bg-black/50 p-2 rounded text-xs font-mono text-green-400">
+                    <div class="absolute top-2 left-2 bg-black/70 p-3 rounded text-xs font-mono text-green-400 border border-green-500/30">
+                        <div class="font-bold text-white mb-1 border-b border-gray-600">TELEMETRI</div>
                         <div>MASA: <span id="hudTime">0.00</span> s</div>
                         <div>LAJU: <span id="hudVel">0.0</span> m/s</div>
                         <div>TINGGI: <span id="hudAlt">0.0</span> m</div>
+                        <div class="mt-1 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> CG (Graviti)
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> CP (Tekanan Udara)
+                        </div>
+                        <div id="stabilityWarn" class="text-red-400 font-bold mt-1 animate-pulse hidden">AMARAN: ROKET TIDAK STABIL!</div>
                     </div>
                 </div>
 
-                <!-- Top-Down Radar View -->
                 <div class="radar-container" id="radarContainer">
                     <canvas id="radarCanvas"></canvas>
                     <div class="absolute top-1 left-2 text-xs font-bold text-emerald-300">RADAR PANDANGAN ATAS</div>
@@ -210,7 +208,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-slate-400">Ralat (Meleset)</p>
-                        <p id="resultError" class="text-lg font-bold text-red-400">0.0 m</p>
+                        <p id="resultError" class="text-lg font-bold text-red-400">0.0 cm</p>
                     </div>
                 </div>
 
@@ -219,10 +217,9 @@
                     <p id="aiFeedback" class="text-sm text-yellow-400">Sistem sedia. Tetapkan parameter dan lancar.</p>
                 </div>
 
-                <!-- Leaderboard -->
                 <div class="glass-panel p-4 rounded-xl mt-2">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏆 Carta Top 10 (Firebase)</h3>
+                        <h3 id="lbTitle" class="text-lg font-bold text-amber-400 flex items-center gap-2">🏆 Carta Top 10 (Kategori: 60m)</h3>
                         <div class="flex gap-2 text-sm">
                             <input type="text" id="playerName" placeholder="Nama Anda" class="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-white" maxlength="15">
                             <button id="saveScoreBtn" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 rounded font-bold text-white transition-colors disabled:opacity-50">Simpan Skor</button>
@@ -235,11 +232,11 @@
                                     <th class="px-4 py-2">Kedudukan</th>
                                     <th class="px-4 py-2">Nama</th>
                                     <th class="px-4 py-2">Jarak Sebenar</th>
-                                    <th class="px-4 py-2 text-right">Ralat (m)</th>
+                                    <th class="px-4 py-2 text-right">Ralat (cm)</th>
                                 </tr>
                             </thead>
                             <tbody id="leaderboardBody">
-                                <tr><td colspan="4" class="text-center py-4 text-slate-500">Memuatkan carta...</td></tr>
+                                <tr><td colspan="4" class="text-center py-4 text-slate-500">Memuatkan sistem...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -251,19 +248,28 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global Firebase Vars
+        // Global Variables
         let db, auth, currentUser;
-        let currentTarget = 60; // Sasaran dinamik
-        let lastLaunchResult = null; // Menyimpan rekod pelancaran terakhir pemain
-        let offlineScores = []; // Menampung data jika tiada pangkalan data awan
+        let currentTarget = 60; 
+        let lastLaunchResult = null; 
+        let offlineScores = []; 
+        let isFirebaseActive = false;
 
-        // Firebase Init
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wr-simulator-pro';
-        
-        // Menggunakan konfigurasi Firebase khusus anda
+        // Custom Toast Function (Replaces alert)
+        window.showCustomMsg = function(msg, isError = false) {
+            const toast = document.getElementById('toastMsg');
+            toast.innerText = msg;
+            toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-xl font-bold z-50 transition-all duration-300 ${isError ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'}`;
+            toast.classList.remove('translate-y-[-100%]', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-100%]', 'opacity-0');
+            }, 3500);
+        };
+
+        // Firebase Setup using user's specific config
         const firebaseConfig = {
             apiKey: "AIzaSyD1YYejO0WLBKF-9bZeGd7OMEtYeEb0evQ",
             authDomain: "wrsimulator-2f08c.firebaseapp.com",
@@ -273,6 +279,7 @@
             appId: "1:918313160000:web:d69f9bdad2e5afa5bbbea5",
             measurementId: "G-ZGPTJHPLTD"
         };
+        const appId = 'wrsimulator-2f08c'; // Fallback path root
 
         try {
             const app = initializeApp(firebaseConfig);
@@ -280,262 +287,241 @@
             db = getFirestore(app);
             initFirebase();
         } catch (e) {
-            console.warn("Firebase tidak dimulakan, beralih ke Mod Luar Talian.", e);
+            console.warn("Firebase ralat, mengaktifkan mod Offline.", e);
             renderLeaderboardLocal();
         }
 
         async function initFirebase() {
             try {
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
                 currentUser = auth.currentUser;
+                isFirebaseActive = true;
                 loadLeaderboard();
             } catch (error) {
-                console.error("Ralat log masuk awanama:", error);
+                console.warn("Ralat Auth Firebase. Mod Luar Talian diaktifkan.");
                 renderLeaderboardLocal();
             }
         }
 
-        // Dipanggil apabila pemain menukar sasaran jarak (slider)
         function updateLeaderboardUI() {
-            const titleEl = document.querySelector('h3.text-amber-400');
-            if (titleEl) titleEl.innerHTML = `🏆 Carta Top 10 (Kategori: ${currentTarget}m)`;
-            
-            if (currentUser && db) {
-                loadLeaderboard();
-            } else {
-                renderLeaderboardLocal();
-            }
+            document.getElementById('lbTitle').innerHTML = `🏆 Carta Top 10 (Kategori: ${currentTarget}m)`;
+            if (isFirebaseActive) loadLeaderboard();
+            else renderLeaderboardLocal();
         }
 
         function loadLeaderboard() {
-            if (!currentUser || !db) {
-                renderLeaderboardLocal();
-                return;
-            }
-            
+            if (!isFirebaseActive) return;
+            // Strict path structure requested by platform rules
             const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
             onSnapshot(lbRef, (snapshot) => {
                 let scores = [];
-                snapshot.forEach(doc => {
-                    scores.push({ id: doc.id, ...doc.data() });
-                });
-
-                // Tapisan (filter) mengikut sasaran jarak yang sedang aktif
+                snapshot.forEach(doc => scores.push({ id: doc.id, ...doc.data() }));
+                
                 let filteredScores = scores.filter(s => s.targetDist === currentTarget);
                 filteredScores.sort((a, b) => a.errorDist - b.errorDist);
-                const top10 = filteredScores.slice(0, 10);
-                
-                renderLeaderboard(top10);
+                renderLeaderboard(filteredScores.slice(0, 10));
             }, (error) => {
-                console.error("Ralat mengambil carta:", error);
+                console.error("Gagal memuat turun data:", error);
+                isFirebaseActive = false;
                 renderLeaderboardLocal();
             });
         }
 
-        // Fungsi khas untuk Mod Luar Talian
         function renderLeaderboardLocal() {
             let filteredScores = offlineScores.filter(s => s.targetDist === currentTarget);
             filteredScores.sort((a, b) => a.errorDist - b.errorDist);
-            const top10 = filteredScores.slice(0, 10);
-            renderLeaderboard(top10);
+            renderLeaderboard(filteredScores.slice(0, 10));
         }
 
         function renderLeaderboard(scores) {
             const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = '';
-            
             if (scores.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada rekod untuk jarak ${currentTarget}m. ${(!db ? '(Mod Offline)' : '')}</td></tr>`;
+                let modeText = isFirebaseActive ? "" : "(Mod Offline)";
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada rekod bagi jarak ${currentTarget}m. ${modeText}</td></tr>`;
                 return;
             }
-
             scores.forEach((s, index) => {
                 let badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
-                // Convert to cm (darab 100)
                 let errorInCm = s.errorDist * 100;
-                
-                let row = `<tr class="leaderboard-row border-b border-slate-700/50">
+                tbody.innerHTML += `<tr class="border-b border-slate-700/50">
                     <td class="px-4 py-2 font-bold">${badge}</td>
                     <td class="px-4 py-2 font-semibold text-blue-300">${s.userName}</td>
                     <td class="px-4 py-2">${s.actualDist.toFixed(2)} m</td>
                     <td class="px-4 py-2 text-right text-amber-400 font-mono">${errorInCm.toFixed(1)} cm</td>
                 </tr>`;
-                tbody.innerHTML += row;
             });
         }
 
-        // UI Elements
-        const saveScoreBtn = document.getElementById('saveScoreBtn');
-        const playerNameInput = document.getElementById('playerName');
-        
-        saveScoreBtn.addEventListener('click', async () => {
-            if (!lastLaunchResult) {
-                showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu!");
-                return;
-            }
-            if (!playerNameInput.value.trim()) {
-                showCustomMsg("Sila masukkan nama anda!");
-                return;
-            }
+        const saveBtn = document.getElementById('saveScoreBtn');
+        saveBtn.addEventListener('click', async () => {
+            const pName = document.getElementById('playerName').value.trim();
+            if (!lastLaunchResult) return showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu!", true);
+            if (!pName) return showCustomMsg("Sila masukkan nama anda!", true);
 
-            saveScoreBtn.disabled = true;
-            saveScoreBtn.innerText = "Menyimpan...";
+            saveBtn.disabled = true;
+            saveBtn.innerText = "Menyimpan...";
 
-            const newScoreData = {
-                userName: playerNameInput.value.trim().substring(0, 15),
+            const newScore = {
+                userName: pName.substring(0, 15),
                 actualDist: lastLaunchResult.actualDist,
                 errorDist: lastLaunchResult.errorDist,
                 targetDist: currentTarget,
                 timestamp: Date.now()
             };
 
-            // LOGIK LUAR TALIAN
-            if (!currentUser || !db) {
-                offlineScores.push(newScoreData);
-                lastLaunchResult = null; 
-                showCustomMsg("Skor disimpan secara lokal (Mod Luar Talian).");
-                playerNameInput.value = "";
+            if (!isFirebaseActive || !currentUser) {
+                offlineScores.push(newScore);
+                lastLaunchResult = null;
+                document.getElementById('playerName').value = "";
+                showCustomMsg("Disimpan ke Mod Luar Talian.");
                 renderLeaderboardLocal();
-                
-                saveScoreBtn.disabled = false;
-                saveScoreBtn.innerText = "Simpan Skor";
+                saveBtn.disabled = false;
+                saveBtn.innerText = "Simpan Skor";
                 return;
             }
 
             try {
+                newScore.userId = currentUser.uid;
                 const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
-                newScoreData.userId = currentUser.uid; // Tambah userId hanya untuk Firebase
-                await addDoc(lbRef, newScoreData);
-                
-                lastLaunchResult = null; // Mencegah spam
-                showCustomMsg("Skor berjaya disimpan di awan!");
-                playerNameInput.value = "";
+                await addDoc(lbRef, newScore);
+                lastLaunchResult = null;
+                document.getElementById('playerName').value = "";
+                showCustomMsg("Skor berjaya dimuat naik!");
             } catch (err) {
-                console.error("Ralat menyimpan:", err);
-                showCustomMsg("Ralat pelayan awan. Disimpan ke Mod Luar Talian.");
-                offlineScores.push(newScoreData);
+                console.error("Gagal simpan awan:", err);
+                offlineScores.push(newScore);
                 renderLeaderboardLocal();
+                showCustomMsg("Ralat awan. Disimpan ke Mod Luar Talian.", true);
             } finally {
-                saveScoreBtn.disabled = false;
-                saveScoreBtn.innerText = "Simpan Skor";
+                saveBtn.disabled = false;
+                saveBtn.innerText = "Simpan Skor";
             }
         });
 
-        // Alternatif alert()
+        // Sync inputs
+        function syncInputs(sId, iId) {
+            const s = document.getElementById(sId);
             const i = document.getElementById(iId);
             if(s && i) {
                 s.addEventListener('input', () => { 
                     i.value = s.value; 
-                    if (sId === 'targetDist') { currentTarget = parseFloat(s.value); updateLeaderboardUI(); }
-                    if(!isAnimating) renderFrame(); 
+                    if(sId === 'targetDist') { currentTarget = parseFloat(s.value); updateLeaderboardUI(); }
+                    if(!isAnimating) renderScene();
                 });
                 i.addEventListener('input', () => { 
                     s.value = i.value; 
-                    if (sId === 'targetDist') { currentTarget = parseFloat(i.value); updateLeaderboardUI(); }
-                    if(!isAnimating) renderFrame(); 
+                    if(sId === 'targetDist') { currentTarget = parseFloat(i.value); updateLeaderboardUI(); }
+                    if(!isAnimating) renderScene();
                 });
             }
         }
-        linkSlider('water', 'waterInput');
-        linkSlider('psi', 'psiInput');
-        linkSlider('angle', 'angleInput');
-        linkSlider('targetDist', 'targetDistInput');
-        linkSlider('nozzleDia', 'nozzleDiaInput');
+        ['targetDist','water','psi','angle','weight','clay','finLen','finWid','nozzleDia'].forEach(id => syncInputs(id, id+'Input'));
         
-        document.getElementById('wind').addEventListener('input', (e) => {
-            document.getElementById('windDisp').innerText = e.target.value + " m/s";
-        });
-        document.getElementById('rail').addEventListener('input', (e) => {
-            document.getElementById('railDisp').innerText = e.target.value;
-        });
-        document.getElementById('parachute').addEventListener('input', (e) => {
-            document.getElementById('paraDisp').innerText = e.target.value;
-        });
+        document.getElementById('rail').addEventListener('input', e => { document.getElementById('railDisp').innerText = e.target.value; });
+        document.getElementById('parachute').addEventListener('input', e => { document.getElementById('paraDisp').innerText = e.target.value; });
+        document.getElementById('wind').addEventListener('input', e => { document.getElementById('windDisp').innerText = e.target.value + " m/s"; });
+
+        const simCanvas = document.getElementById('simCanvas');
+        const radarCanvas = document.getElementById('radarCanvas');
+        const simCtx = simCanvas.getContext('2d');
+        const radarCtx = radarCanvas.getContext('2d');
         
+        let simW, simH, radW, radH;
+        let groundH = 40;
+        let pxPerMeter = 5;
+        
+        let isAnimating = false;
+        let animFrame;
+        let rocket = null;
+        let pathSide = [];
+        let pathRadar = [];
+        let T = 0;
+        const dT = 0.05;
+
+        function resize() {
+            simW = simCanvas.width = document.getElementById('canvasContainer').clientWidth;
+            simH = simCanvas.height = document.getElementById('canvasContainer').clientHeight;
+            radW = radarCanvas.width = document.getElementById('radarContainer').clientWidth;
+            radH = radarCanvas.height = document.getElementById('radarContainer').clientHeight;
+            pxPerMeter = simW / 120; // Allow viewing up to ~120m
+            if(!isAnimating) renderScene();
+        }
+        window.addEventListener('resize', resize);
+        setTimeout(resize, 100);
+
         function startSimulation() {
-            if (isAnimating) return;
+            if(isAnimating) return;
             
-            // Dapatkan input pemain
-            currentTarget = parseFloat(document.getElementById('targetDistInput').value);
-            document.getElementById('targetDispUI').innerText = currentTarget.toFixed(1) + " m";
+            // Get Variables
+            const target = parseFloat(document.getElementById('targetDistInput').value);
+            currentTarget = target;
+            document.getElementById('targetDispUI').innerText = target.toFixed(1) + " m";
             
             const waterML = parseFloat(document.getElementById('waterInput').value);
             const psi = parseFloat(document.getElementById('psiInput').value);
             const angleDeg = parseFloat(document.getElementById('angleInput').value);
-            const bWeight = parseFloat(document.getElementById('weightInput').value);
-            const clay = parseFloat(document.getElementById('clayInput').value);
-            const finL = parseFloat(document.getElementById('finLenInput').value);
-            const finW = parseFloat(document.getElementById('finWidInput').value);
-            const nozzleDiaMM = parseFloat(document.getElementById('nozzleDiaInput').value);
+            const bottleMass = parseFloat(document.getElementById('weightInput').value) / 1000;
+            const clayMass = parseFloat(document.getElementById('clayInput').value) / 1000;
+            const fLen = parseFloat(document.getElementById('finLenInput').value);
+            const fWid = parseFloat(document.getElementById('finWidInput').value);
+            const nozzleMM = parseFloat(document.getElementById('nozzleDiaInput').value);
             const railLen = parseFloat(document.getElementById('rail').value);
+            const paraSize = parseFloat(document.getElementById('parachute').value) / 100;
             const windSpd = parseFloat(document.getElementById('wind').value);
             const windDir = parseFloat(document.getElementById('windDir').value);
+
+            // Physics Calculation
+            const finAreaCM2 = (fLen * fWid * 0.5) * 3;
+            const finMass = (finAreaCM2 * 0.1 * 1.2) / 1000; // kg
+            const dryMass = bottleMass + clayMass + finMass;
+            const waterMass = waterML / 1000;
             
-            // Jisim roket = Botol + Tanah Liat + Air (awalan) + Sirip
-            const dryMass = (bWeight + clay + ((finL * finW * 0.5)*0.1*1.2*3)) / 1000; // dalam KG
-            const initialWaterMass = waterML / 1000; 
+            // CG & CP Calculation
+            // Anggap roket 30cm (0.3m). Hidung = 0.3m, Ekor = 0.0m
+            const cgPos = ((bottleMass * 0.15) + (clayMass * 0.3) + (finMass * 0.0)) / dryMass;
+            const cpPos = 0.15 - (finAreaCM2 * 0.0005); // Sirip besar tolak CP ke belakang (ekor)
+            const isStable = cgPos > cpPos; // Stabil jika CG di depan CP
             
-            // Pengiraan Fizik Nozzle & Tujahan Bendalir Realistik
+            // Thrust
             const pPascal = psi * 6894.76;
-            const waterDensity = 1000; // kg/m^3
-            const nozzleArea = Math.PI * Math.pow((nozzleDiaMM / 1000) / 2, 2); // Luas (m^2)
+            const nozzleArea = Math.PI * Math.pow((nozzleMM/1000)/2, 2);
+            const thrust = 2 * pPascal * nozzleArea;
+            const massFlow = nozzleArea * Math.sqrt(2 * pPascal * 1000);
+            const tDuration = massFlow > 0 ? waterMass / massFlow : 0;
             
-            // Daya Tujahan (Thrust Force: F = 2 * P * A)
-            const thrustForce = 2 * pPascal * nozzleArea;
+            let nozzleEff = 0.85 - (Math.abs(nozzleMM - 11) * 0.02);
+            if(nozzleEff < 0.4) nozzleEff = 0.4;
             
-            // Kadar Aliran Jisim (Mass Flow Rate: m_dot = A * sqrt(2 * P * rho))
-            const massFlowRate = nozzleArea * Math.sqrt(2 * pPascal * waterDensity);
+            const totalImpulse = thrust * tDuration * nozzleEff * 1.4; // 1.4 accounts for air thrust phase
+            const avgMass = dryMass + (waterMass/2);
+            let vInit = avgMass > 0 ? (totalImpulse / avgMass) : 0;
             
-            // Masa Tujahan Semasa Ada Air (t = Jisim / Kadar Aliran)
-            let thrustDuration = massFlowRate > 0 ? initialWaterMass / massFlowRate : 0;
-            
-            // Kecekapan Nozzle (Diameter optimum untuk keseimbangan ialah 9mm-12mm)
-            // Nozzle terlalu besar: Tekanan terlepas terlalu cepat tanpa tujahan padu.
-            // Nozzle terlalu kecil: Aliran tersekat (choked flow) & geseran tinggi.
-            let nozzleEfficiency = 0.85 - (Math.abs(nozzleDiaMM - 11) * 0.02);
-            if (nozzleEfficiency < 0.4) nozzleEfficiency = 0.4; // Had paling rendah
-            
-            // Jumlah Momentum/Impuls = Daya * Masa * Kecekapan
-            // Kami darabkan dengan 1.45 untuk merangkumi fasa pengembangan udara mampat (Air Thrust Phase) selepas air habis
-            let totalImpulse = thrustForce * thrustDuration * nozzleEfficiency * 1.45;
-            
-            // Geseran Rel
-            const railFrictionLossVelocity = railLen * 0.5; // Kelajuan m/s hilang mengikut panjang rel
-            
-            // V = Impuls / Jisim Purata Semasa Pelepasan
-            const avgMass = dryMass + (initialWaterMass / 2); 
-            let vInitial = avgMass > 0 ? (totalImpulse / avgMass) : 0;
-            vInitial -= railFrictionLossVelocity;
-            
-            // Faktor kegagalan air melampau penuh/kosong
-            if (waterML < 100 || waterML > 1300) vInitial *= 0.2; 
-            if (vInitial < 0) vInitial = 0;
-            
+            if (waterML < 50 || waterML > 1400) vInit *= 0.1; // Kegagalan ekstrem
+            vInit -= (railLen * 0.2); // Geseran rail
+
             const rad = angleDeg * Math.PI / 180;
             
             rocket = {
-                x: 0, y: railLen * Math.sin(rad), z: 0, // Z adalah satah sisi
-                vx: vInitial * Math.cos(rad),
-                vy: vInitial * Math.sin(rad),
+                x: 0, y: railLen * Math.sin(rad), z: 0,
+                vx: vInit * Math.cos(rad),
+                vy: vInit * Math.sin(rad),
                 vz: 0,
-                mass: dryMass, // Kita andaikan air habis serta-merta sejurus lepas rel
+                mass: dryMass,
                 angle: rad,
-                hasParachuteDeployed: false,
-                paraSize: parseFloat(document.getElementById('parachute').value) / 100 // cm to m
+                isStable: isStable,
+                cg: cgPos,
+                cp: cpPos,
+                para: paraSize,
+                paraDeployed: false,
+                crossArea: 0.0063 + (finAreaCM2 * 0.0001) // Area for drag
             };
             
-            // Pengiraan Angin
-            const windRad = (windDir - 90) * (Math.PI / 180);
-            const windX = windSpd * Math.cos(windRad);
-            const windZ = windSpd * Math.sin(windRad);
+            const wRad = (windDir - 90) * (Math.PI / 180);
+            const windX = windSpd * Math.cos(wRad);
+            const windZ = windSpd * Math.sin(wRad);
             
-            // Sifat Aerodinamik
-            const area = 0.0063; // Keratan rentas botol ~9cm diameter
-            const cdBase = 0.35; // Aerodinamik botol
+            document.getElementById('stabilityWarn').classList.toggle('hidden', isStable);
 
             T = 0;
             pathSide = [];
@@ -543,66 +529,56 @@
             isAnimating = true;
             
             const btn = document.getElementById('launchBtn');
-            btn.disabled = true;
-            btn.innerText = "⏳ Sedang Terbang...";
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-            
+            btn.disabled = true; btn.innerText = "Terbang...";
             document.getElementById('resultDist').innerText = "0.0 m";
-            document.getElementById('resultError').innerText = "0.0 m";
+            document.getElementById('resultError').innerText = "0.0 cm";
 
             function step() {
                 T += dT;
                 
-                // Halaju relatif kepada angin
                 const relVx = rocket.vx - windX;
                 const relVz = rocket.vz - windZ;
-                const vMag = Math.sqrt(relVx*relVx + rocket.vy*rocket.vy + relVz*relVz);
+                const vMag = Math.sqrt(relVx*relVx + rocket.vy*rocket.vy + relVz*relVz) || 1;
                 
-                // Rintangan Udara (Drag = 0.5 * rho * v^2 * Cd * A)
-                let currentCd = cdBase;
-                let currentArea = area;
+                let cd = 0.35;
+                let area = rocket.crossArea;
                 
-                // Pengembangan payung terjun di puncak Apogee (vy < 0)
-                if (rocket.vy < 0 && rocket.paraSize > 0 && !rocket.hasParachuteDeployed) {
-                    rocket.hasParachuteDeployed = true;
-                }
-                
-                if (rocket.hasParachuteDeployed) {
-                    currentCd = 1.5; // Drag coefficient payung terbuka
-                    currentArea = Math.PI * Math.pow(rocket.paraSize / 2, 2); // Luas payung
+                if(!rocket.isStable) {
+                    cd = 1.2; // Tumbeling drag
+                    rocket.angle += 0.5; // Spin wildly
                 } else {
-                    // Tambah sedikit drag bergantung saiz sirip
-                    currentArea += (finL * finW * 0.0001 * 0.1); 
+                    rocket.angle = Math.atan2(rocket.vy, rocket.vx);
+                }
+
+                if (rocket.vy < 0 && rocket.para > 0 && !rocket.paraDeployed) {
+                    rocket.paraDeployed = true;
                 }
                 
-                const dragF = 0.5 * 1.225 * vMag * vMag * currentCd * currentArea;
+                if (rocket.paraDeployed) {
+                    cd = 1.5;
+                    area = Math.PI * Math.pow(rocket.para/2, 2);
+                }
                 
-                const ax = -(dragF * (relVx / (vMag||1))) / rocket.mass;
-                const ay = -(dragF * (rocket.vy / (vMag||1))) / rocket.mass - 9.81;
-                const az = -(dragF * (relVz / (vMag||1))) / rocket.mass;
+                const drag = 0.5 * 1.225 * vMag * vMag * cd * area;
                 
-                rocket.vx += ax * dT;
-                rocket.vy += ay * dT;
-                rocket.vz += az * dT;
+                rocket.vx += (-(drag * (relVx/vMag)) / rocket.mass) * dT;
+                rocket.vy += (-(drag * (rocket.vy/vMag)) / rocket.mass - 9.81) * dT;
+                rocket.vz += (-(drag * (relVz/vMag)) / rocket.mass) * dT;
                 
                 rocket.x += rocket.vx * dT;
                 rocket.y += rocket.vy * dT;
                 rocket.z += rocket.vz * dT;
                 
-                rocket.angle = Math.atan2(rocket.vy, rocket.vx);
-                
-                // Catat jejak setiap 0.1s
-                if (Math.floor(T/dT) % 3 === 0) {
-                    pathSide.push({x: rocket.x, y: Math.y});
+                if (Math.floor(T/dT)%3 === 0) {
+                    pathSide.push({x: rocket.x, y: rocket.y});
                     pathRadar.push({x: rocket.x, z: rocket.z});
                 }
                 
-                // Kemas kini HUD
                 document.getElementById('hudTime').innerText = T.toFixed(2);
                 document.getElementById('hudVel').innerText = vMag.toFixed(1);
                 document.getElementById('hudAlt').innerText = Math.max(0, rocket.y).toFixed(1);
 
-                renderFrame();
+                renderScene();
                 
                 if (rocket.y <= 0 && T > 0.2) {
                     rocket.y = 0;
@@ -611,161 +587,116 @@
                     animFrame = requestAnimationFrame(step);
                 }
             }
-            
             animFrame = requestAnimationFrame(step);
         }
 
-        function renderFrame() {
-            // Render Side View
-            simCtx.clearRect(0,0, simCanvas.width, simCanvas.height);
-            simCtx.fillStyle = '#15803d'; // Green ground
-            simCtx.fillRect(0, simCanvas.height - groundH, simCanvas.width, groundH);
+        function renderScene() {
+            if(!simCtx || !radarCtx) return;
             
-            // Markers
+            // SIM CANVAS (Side View)
+            simCtx.clearRect(0,0, simW, simH);
+            simCtx.fillStyle = '#15803d';
+            simCtx.fillRect(0, simH - groundH, simW, groundH);
+            
+            // Markers & Target
             simCtx.fillStyle = 'rgba(255,255,255,0.7)';
             simCtx.font = '10px Inter';
-            for(let i=0; i<=110; i+=10) {
-                let px = i * PxPerMeter;
-                simCtx.fillRect(px, simCanvas.height - groundH, 1, 5);
-                simCtx.fillText(i+'m', px-5, simCanvas.height - groundH + 15);
+            for(let i=0; i<=120; i+=10) {
+                let px = i * pxPerMeter;
+                simCtx.fillRect(px, simH - groundH, 1, 5);
+                simCtx.fillText(i+'m', px-5, simH - groundH + 15);
             }
-            
-            // Target
-            const tx = currentTarget * PxPerMeter;
-            simCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
-            simCtx.fillRect(tx - 10, simCanvas.height - groundH, 20, 5);
+            const tx = currentTarget * pxPerMeter;
+            simCtx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+            simCtx.fillRect(tx - 15, simH - groundH, 30, 5);
             simCtx.fillStyle = '#ef4444';
-            simCtx.fillRect(tx, simCanvas.height - groundH - 30, 2, 30);
+            simCtx.fillRect(tx, simH - groundH - 30, 2, 30);
             
-            // Trajectory Trail
-            simCtx.beginPath();
-            simCtx.strokeStyle = 'rgba(255,255,255,0.4)';
-            simCtx.setLineDash([3,3]);
-            pathSide.forEach((p, i) => {
-                let px = p.x * PxPerMeter;
-                let py = simCanvas.height - groundH - (rocket.y > 0 ? (pathSide[i]?.y || p.y) * PxPerMeter : 0);
-                if(i===0) simCtx.moveTo(px, py);
-                else simCtx.lineTo(px, py);
+            // Side Path
+            simCtx.beginPath(); simCtx.strokeStyle = 'rgba(255,255,255,0.4)'; simCtx.setLineDash([3,3]);
+            pathSide.forEach((p,i) => {
+                let px = p.x * pxPerMeter; let py = simH - groundH - (p.y * pxPerMeter);
+                if(i===0) simCtx.moveTo(px, py); else simCtx.lineTo(px, py);
             });
-            simCtx.stroke();
-            simCtx.setLineDash([]);
+            simCtx.stroke(); simCtx.setLineDash([]);
             
-            // Rocket Object
-            if (rocket) {
+            // Draw Rocket
+            if(rocket) {
+                let rx = rocket.x * pxPerMeter;
+                let ry = simH - groundH - (rocket.y * pxPerMeter);
                 simCtx.save();
-                let rx = rocket.x * PxPerMeter;
-                let ry = simCanvas.height - groundH - (rocket.y * PxPerMeter);
                 simCtx.translate(rx, ry);
-                simCtx.rotate(-rocket.angle); // -ve because y is flipped
+                simCtx.rotate(-rocket.angle);
                 
                 // Body
-                simCtx.fillStyle = '#cbd5e1';
-                simCtx.fillRect(-10, -3, 20, 6);
-                simCtx.fillStyle = '#ef4444';
-                simCtx.beginPath(); simCtx.moveTo(10, -3); simCtx.lineTo(16, 0); simCtx.lineTo(10, 3); simCtx.fill();
+                simCtx.fillStyle = '#cbd5e1'; simCtx.fillRect(-15, -4, 30, 8);
+                simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.moveTo(15,-4); simCtx.lineTo(22,0); simCtx.lineTo(15,4); simCtx.fill();
                 
+                // CG & CP Dots (Map 0.0-0.3m to -15px to +15px)
+                const cgPx = (rocket.cg / 0.3) * 30 - 15;
+                const cpPx = (rocket.cp / 0.3) * 30 - 15;
+                simCtx.fillStyle = '#22c55e'; simCtx.beginPath(); simCtx.arc(cgPx, 0, 3, 0, Math.PI*2); simCtx.fill(); // Green CG
+                simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.arc(cpPx, 0, 3, 0, Math.PI*2); simCtx.fill(); // Red CP
+
                 simCtx.restore();
                 
-                // Parachute visual
-                if (rocket.hasParachuteDeployed) {
-                    simCtx.fillStyle = 'rgba(250, 204, 21, 0.8)'; // Yellow para
-                    simCtx.beginPath();
-                    simCtx.arc(rx, ry - 20, 15, Math.PI, 0);
-                    simCtx.fill();
-                    simCtx.strokeStyle = '#fff';
-                    simCtx.beginPath();
-                    simCtx.moveTo(rx - 15, ry - 20); simCtx.lineTo(rx, ry);
-                    simCtx.moveTo(rx + 15, ry - 20); simCtx.lineTo(rx, ry);
-                    simCtx.stroke();
+                if(rocket.paraDeployed) {
+                    simCtx.fillStyle = 'rgba(250, 204, 21, 0.8)';
+                    simCtx.beginPath(); simCtx.arc(rx, ry-20, 15, Math.PI, 0); simCtx.fill();
+                    simCtx.strokeStyle='#fff'; simCtx.beginPath(); simCtx.moveTo(rx-15,ry-20); simCtx.lineTo(rx,ry); simCtx.moveTo(rx+15,ry-20); simCtx.lineTo(rx,ry); simCtx.stroke();
                 }
             }
+
+            // RADAR CANVAS (Top View)
+            radarCtx.clearRect(0,0, radW, radH);
+            const rCY = radH / 2;
+            radarCtx.strokeStyle = 'rgba(255,255,255,0.2)'; radarCtx.beginPath(); radarCtx.moveTo(0, rCY); radarCtx.lineTo(radW, rCY); radarCtx.stroke();
             
-            // Render Radar View
-            radarCtx.clearRect(0,0, radarCanvas.width, radarCanvas.height);
-            // Center line (X axis)
-            const rCenterY = radarCanvas.height / 2;
-            radarCtx.strokeStyle = 'rgba(255,255,255,0.2)';
-            radarCtx.beginPath();
-            radarCtx.moveTo(0, rCenterY); radarCtx.lineTo(radarCanvas.width, rCenterY);
-            radarCtx.stroke();
+            const rTx = currentTarget * pxPerMeter;
+            radarCtx.strokeStyle = '#34d399'; radarCtx.beginPath(); radarCtx.arc(rTx, rCY, 5, 0, Math.PI*2); radarCtx.stroke();
+            radarCtx.beginPath(); radarCtx.arc(rTx, rCY, 15, 0, Math.PI*2); radarCtx.stroke();
             
-            // Target Bullseye
-            const rTx = currentTarget * PxPerMeter;
-            radarCtx.strokeStyle = '#34d399';
-            radarCtx.beginPath(); radarCtx.arc(rTx, rCenterY, 5, 0, Math.PI*2); radarCtx.stroke();
-            radarCtx.beginPath(); radarCtx.arc(rTx, rCenterY, 15, 0, Math.PI*2); radarCtx.stroke();
-            
-            // Radar Trail
-            radarCtx.beginPath();
-            radarCtx.strokeStyle = '#facc15';
-            radarCtx.lineWidth = 2;
-            pathRadar.forEach((p, i) => {
-                let px = p.x * PxPerMeter;
-                let py = rCenterY + (p.z * PxPerMeter); // Z drift
-                if (i===0) radarCtx.moveTo(px, py);
-                else radarCtx.lineTo(px, py);
+            radarCtx.beginPath(); radarCtx.strokeStyle = '#facc15'; radarCtx.lineWidth = 2;
+            pathRadar.forEach((p,i) => {
+                let px = p.x * pxPerMeter; let py = rCY + (p.z * pxPerMeter);
+                if(i===0) radarCtx.moveTo(px, py); else radarCtx.lineTo(px, py);
             });
-            if(rocket) {
-                radarCtx.lineTo(rocket.x * PxPerMeter, rCenterY + (rocket.z * PxPerMeter));
-            }
+            if(rocket) radarCtx.lineTo(rocket.x * pxPerMeter, rCY + (rocket.z * pxPerMeter));
             radarCtx.stroke();
             
-            // Current Dot
-            if (rocket) {
-                radarCtx.fillStyle = '#ef4444';
-                radarCtx.beginPath();
-                radarCtx.arc(rocket.x * PxPerMeter, rCenterY + (rocket.z * PxPerMeter), 3, 0, Math.PI*2);
-                radarCtx.fill();
+            if(rocket) {
+                radarCtx.fillStyle = '#ef4444'; radarCtx.beginPath(); radarCtx.arc(rocket.x * pxPerMeter, rCY + (rocket.z * pxPerMeter), 3, 0, Math.PI*2); radarCtx.fill();
             }
         }
 
         function finishSim() {
             isAnimating = false;
             const btn = document.getElementById('launchBtn');
-            btn.disabled = false;
-            btn.innerText = "🚀 LEPAS ROKET!";
-            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.disabled = false; btn.innerText = "🚀 LEPAS ROKET!";
             
             const dist = Math.sqrt(rocket.x*rocket.x + rocket.z*rocket.z);
-            const err = Math.abs(dist - currentTarget);
+            const errMeters = Math.abs(dist - currentTarget);
+            const errCm = errMeters * 100;
             
             document.getElementById('resultDist').innerText = dist.toFixed(2) + " m";
-            document.getElementById('resultError').innerText = err.toFixed(2) + " m";
+            document.getElementById('resultError').innerText = errCm.toFixed(1) + " cm";
             
-            // Save state for Leaderboard submission
-            lastLaunchResult = { actualDist: dist, errorDist: err };
+            lastLaunchResult = { actualDist: dist, errorDist: errMeters };
             
             const aiText = document.getElementById('aiFeedback');
-            const waterML = parseFloat(document.getElementById('waterInput').value);
-            const psi = parseFloat(document.getElementById('psiInput').value);
-            const angle = parseFloat(document.getElementById('angleInput').value);
-            const para = parseFloat(document.getElementById('parachute').value);
-            
-            if (err <= 2.0) {
+            if (!rocket.isStable) {
+                aiText.innerHTML = "AI Analisis: ROKET TIDAK STABIL! Pusat Graviti (Hijau) berada di belakang Pusat Tekanan (Merah). Tambah berat tanah liat di muncung roket untuk menstabilkannya.";
+                aiText.className = "text-sm text-red-400 font-bold";
+            } else if (errMeters <= 2.0) {
                 aiText.innerHTML = "AI Analisis (NASA Calibrated): Sempurna! Mengikut piawaian NASA, konfigurasi ini mencatat jarak ketepatan cemerlang. WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
                 aiText.className = "text-sm text-emerald-400 font-bold";
-            } else if (para > 0 && Math.abs(rocket.z) > 10) {
-                aiText.innerHTML = "AI Analisis: Payung terjun terbuka menyebabkan rintangan tinggi dan roket hanyut sangat jauh akibat angin sisi. Pertimbangkan saiz yang lebih kecil.";
-                aiText.className = "text-sm text-orange-400";
-            } else if (dist < 50) {
-                let nasihat = "";
-                if(waterML < 300) nasihat = "Tambah air menghampiri 1/3 isipadu botol (500ml) untuk tujahan optimum.";
-                else if(waterML > 800) nasihat = "Botol terlalu berat dengan air. Kurangkan kepada 500ml.";
-                else if(psi < 50) nasihat = "Naikkan tekanan PSI berhampiran 60-70.";
-                else if(angle > 60) nasihat = "Sudut terlalu menegak. Turunkan menghampiri 45°.";
-                else nasihat = "Kurangkan beban atau saiz sirip yang mungkin mencetus seretan aerodinamik.";
-                aiText.innerHTML = "AI Analisis: Jarak pendek. " + nasihat;
-                aiText.className = "text-sm text-yellow-400";
             } else {
-                aiText.innerHTML = "AI Analisis: Terlalu jauh atau terpesong. Ubah suai sudut (bukan 45°) untuk memendekkan jarak lengkungan, atau rendahkan PSI.";
+                aiText.innerHTML = "AI Analisis: Pelancaran stabil tetapi tersasar. Ubah suai tekanan (PSI), isipadu air (1/3 botol ideal), atau diameter Nozzle berhampiran 9mm-11mm.";
                 aiText.className = "text-sm text-yellow-400";
             }
         }
 
         document.getElementById('launchBtn').addEventListener('click', startSimulation);
-        
-        // Initial setup
-        setTimeout(resize, 100);
 
     </script>
 </body>
