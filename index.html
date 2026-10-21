@@ -279,6 +279,8 @@
         // Global Variables
         let db, auth, currentUser;
         let currentTarget = 60; 
+        let currentMode = 'latihan'; // Mod asal
+        let competitionAttempts = 0; // Kiraan pelancaran
         let lastLaunchResult = null; 
         let offlineScores = []; 
         let isFirebaseActive = false;
@@ -377,14 +379,36 @@
 
         // Fungsi Log Masuk & Log Keluar UI
         document.getElementById('loginBtn').addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch(error => {
-                console.error("Ralat Log Masuk:", error);
-                showCustomMsg("Gagal log masuk Google.", true);
+            signInWithPopup(auth, provider).catch(e => {
+                console.error("Gagal log masuk:", e);
+                showCustomMsg("Ralat log masuk. Sila cuba lagi.", true);
             });
         });
-        
+
         document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth).then(() => showCustomMsg("Telah log keluar."));
+            signOut(auth).then(() => {
+                showCustomMsg("Berjaya log keluar.");
+            });
+        });
+
+        // Pemilihan Mod
+        document.getElementById('btnLatihan').addEventListener('click', () => {
+            currentMode = 'latihan';
+            document.getElementById('btnLatihan').className = "flex-1 py-2 bg-blue-600 text-white font-bold rounded-md transition-colors text-sm shadow-lg";
+            document.getElementById('btnPertandingan').className = "flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm";
+            document.getElementById('saveScoreBtn').disabled = true;
+            document.getElementById('saveScoreBtn').innerText = "Skor (Hanya Pertandingan)";
+            showCustomMsg("Mod Latihan: Tiada rekod, angin dihentikan.");
+        });
+
+        document.getElementById('btnPertandingan').addEventListener('click', () => {
+            currentMode = 'pertandingan';
+            competitionAttempts = 0; // Reset percubaan setiap kali masuk mod pertandingan baru
+            document.getElementById('btnPertandingan').className = "flex-1 py-2 bg-amber-600 text-white font-bold rounded-md transition-colors text-sm shadow-lg";
+            document.getElementById('btnLatihan').className = "flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm";
+            document.getElementById('saveScoreBtn').disabled = false;
+            document.getElementById('saveScoreBtn').innerText = "Simpan Skor";
+            showCustomMsg("Mod Pertandingan Aktif! Angin berfungsi & percubaan direkod.");
         });
 
         // Fungsi Padam Rekod (Khusus Admin)
@@ -408,14 +432,22 @@
 
         function loadLeaderboard() {
             if (!isFirebaseActive) return;
-            // Strict path structure requested by platform rules
             const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
             onSnapshot(lbRef, (snapshot) => {
                 let scores = [];
                 snapshot.forEach(doc => scores.push({ id: doc.id, ...doc.data() }));
                 
-                let filteredScores = scores.filter(s => s.targetDist === currentTarget);
-                filteredScores.sort((a, b) => a.errorDist - b.errorDist);
+                // Tapis skor mengikut mod pertandingan dan jarak
+                let filteredScores = scores.filter(s => s.targetDist === currentTarget && s.mode === 'pertandingan');
+                
+                // TIE BREAKER SORTING: Ralat -> Percubaan
+                filteredScores.sort((a, b) => {
+                    let diff = a.errorDist - b.errorDist;
+                    if (Math.abs(diff) < 0.01) { // Jika ralat sama/sangat hampir (< 1cm)
+                        return (a.attempts || 0) - (b.attempts || 0); // Paling sikit cuba menang
+                    }
+                    return diff;
+                });
                 renderLeaderboard(filteredScores.slice(0, 10));
             }, (error) => {
                 console.error("Gagal memuat turun data:", error);
@@ -435,20 +467,20 @@
             tbody.innerHTML = '';
             if (scores.length === 0) {
                 let modeText = isFirebaseActive ? "" : "(Mod Offline)";
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada rekod bagi jarak ${currentTarget}m. ${modeText}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Belum ada rekod bagi jarak ${currentTarget}m. ${modeText}</td></tr>`;
                 return;
             }
             scores.forEach((s, index) => {
                 let badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
                 let errorInCm = s.errorDist * 100;
                 
-                // Butang padam muncul jika akaun Cikgu login
                 let adminDeleteBtn = isAdmin ? `<button onclick="deleteScore('${s.id}')" class="ml-2 bg-red-600/80 hover:bg-red-500 text-white text-[10px] px-2 py-0.5 rounded cursor-pointer" title="Padam Rekod">Padam</button>` : '';
 
                 tbody.innerHTML += `<tr class="border-b border-slate-700/50">
                     <td class="px-4 py-2 font-bold">${badge}</td>
                     <td class="px-4 py-2 font-semibold text-blue-300 flex items-center">${s.userName} ${adminDeleteBtn}</td>
                     <td class="px-4 py-2">${s.actualDist.toFixed(2)} m</td>
+                    <td class="px-4 py-2 text-center text-indigo-300 font-bold">${s.attempts || 1}</td>
                     <td class="px-4 py-2 text-right text-amber-400 font-mono">${errorInCm.toFixed(1)} cm</td>
                 </tr>`;
             });
@@ -456,6 +488,7 @@
 
         const saveBtn = document.getElementById('saveScoreBtn');
         saveBtn.addEventListener('click', async () => {
+            if (currentMode !== 'pertandingan') return showCustomMsg("Sila tukar ke Mod Pertandingan dahulu!", true);
             if (!currentUser || !currentUser.email) return showCustomMsg("Sila log masuk menggunakan DELIMa!", true);
             if (!lastLaunchResult) return showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu!", true);
 
@@ -467,6 +500,8 @@
                 actualDist: lastLaunchResult.actualDist,
                 errorDist: lastLaunchResult.errorDist,
                 targetDist: currentTarget,
+                attempts: competitionAttempts, // Simpan rekod jumlah cuba
+                mode: currentMode,
                 timestamp: Date.now(),
                 userId: currentUser.uid
             };
@@ -504,7 +539,7 @@
                 });
             }
         }
-        ['targetDist','water','psi','angle','weight','clay','finLen','finWid','nozzleDia','rocketLen'].forEach(id => syncInputs(id, id+'Input'));
+        ['targetDist','water','psi','angle','yaw','weight','clay','finLen','finWid','nozzleDia','rocketLen'].forEach(id => syncInputs(id, id+'Input'));
         
         document.getElementById('rail').addEventListener('input', e => { document.getElementById('railDisp').innerText = e.target.value; });
         document.getElementById('parachute').addEventListener('input', e => { document.getElementById('paraDisp').innerText = e.target.value; });
@@ -653,19 +688,10 @@
 
         function startSimulation() {
             if(isAnimating) return;
-            
-            // --- JANA ANGIN RAWAK (Jika pengguna tidak set secara manual) ---
-            if (!userSetWind) {
-                // Rawak antara 3 km/j hingga 10 km/j
-                const randKmh = Math.random() * (10 - 3) + 3; 
-                const randMs = randKmh / 3.6;
-                const dirs = [0, 45, 90, 135, 180, 225, 270, 315];
-                const randDir = dirs[Math.floor(Math.random() * dirs.length)];
-                
-                // Kemas kini UI Slider ke nilai rawak tersebut
-                document.getElementById('wind').value = randMs.toFixed(1);
-                document.getElementById('windDir').value = randDir;
-                document.getElementById('windDisp').innerText = randMs.toFixed(1) + " m/s (" + randKmh.toFixed(1) + " km/j)";
+
+            // Tambah percubaan jika dalam Mod Pertandingan
+            if(currentMode === 'pertandingan') {
+                competitionAttempts++;
             }
 
             // Get Variables
@@ -676,6 +702,7 @@
             const waterML = parseFloat(document.getElementById('waterInput').value);
             const psi = parseFloat(document.getElementById('psiInput').value);
             const angleDeg = parseFloat(document.getElementById('angleInput').value);
+            const yawDeg = parseFloat(document.getElementById('yawInput').value);
             const bottleMass = parseFloat(document.getElementById('weightInput').value) / 1000;
             const clayMass = parseFloat(document.getElementById('clayInput').value) / 1000;
             const fLen = parseFloat(document.getElementById('finLenInput').value);
@@ -685,7 +712,12 @@
             const nozzleMM = parseFloat(document.getElementById('nozzleDiaInput').value);
             const railLen = parseFloat(document.getElementById('rail').value);
             const paraSize = parseFloat(document.getElementById('parachute').value) / 100;
-            const windSpd = parseFloat(document.getElementById('wind').value);
+            
+            // Pengawalan Angin Mengikut Mod
+            let windSpd = parseFloat(document.getElementById('wind').value);
+            if (currentMode === 'latihan') {
+                windSpd = 0; // Mod latihan tiada angin
+            }
             const windDir = parseFloat(document.getElementById('windDir').value);
 
             // Physics Calculation
@@ -748,15 +780,17 @@
             vInit -= (railLen * 0.15); // Geseran rail
 
             const rad = angleDeg * Math.PI / 180;
+            const yawRad = yawDeg * Math.PI / 180;
             
             rocket = {
                 x: 0, y: railLen * Math.sin(rad), z: 0,
-                vx: vInit * Math.cos(rad),
+                vx: vInit * Math.cos(rad) * Math.cos(yawRad),
                 vy: vInit * Math.sin(rad),
-                vz: 0,
+                vz: vInit * Math.cos(rad) * Math.sin(yawRad),
                 mass: dryMass + deadWaterMass, // Jisim di udara kekal berat jika ada air terperangkap!
                 deadWater: deadWaterMass, // Rujukan rekod AI
                 angle: rad,
+                yaw: yawRad,
                 isStable: isStable,
                 cg: cgPos,
                 cp: cpPos,
@@ -899,8 +933,20 @@
             // RADAR CANVAS (Top View)
             radarCtx.clearRect(0,0, radW, radH);
             const rCY = radH / 2;
+            
+            // Garisan Lurus (Target)
             radarCtx.strokeStyle = 'rgba(255,255,255,0.2)'; radarCtx.beginPath(); radarCtx.moveTo(0, rCY); radarCtx.lineTo(radW, rCY); radarCtx.stroke();
             
+            // Garisan Sasar (Yaw Aim)
+            let currentYaw = document.getElementById('yawInput') ? parseFloat(document.getElementById('yawInput').value) * (Math.PI/180) : 0;
+            if (rocket) currentYaw = rocket.yaw;
+            const aimX = radW * Math.cos(currentYaw);
+            const aimZ = radW * Math.sin(currentYaw);
+            radarCtx.strokeStyle = 'rgba(167, 139, 250, 0.4)'; // Ungu untuk arah muncung
+            radarCtx.setLineDash([5, 5]);
+            radarCtx.beginPath(); radarCtx.moveTo(0, rCY); radarCtx.lineTo(aimX, rCY + aimZ); radarCtx.stroke();
+            radarCtx.setLineDash([]);
+
             const rTx = currentTarget * pxPerMeter;
             radarCtx.strokeStyle = '#34d399'; radarCtx.beginPath(); radarCtx.arc(rTx, rCY, 5, 0, Math.PI*2); radarCtx.stroke();
             radarCtx.beginPath(); radarCtx.arc(rTx, rCY, 15, 0, Math.PI*2); radarCtx.stroke();
