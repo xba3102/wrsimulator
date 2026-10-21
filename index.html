@@ -157,6 +157,7 @@
                 </div>
 
                 <div class="mt-2 border-t border-slate-700 pt-3">
+                <div class="mt-2 border-t border-slate-700 pt-3 pb-2">
                     <label class="text-sm mb-1 text-slate-300 block">Kelajuan Angin (m/s & km/j)</label>
                     <input type="range" id="wind" min="0" max="15" step="0.1" value="0" class="w-full">
                     <div class="flex justify-between items-center mt-1">
@@ -174,20 +175,6 @@
                     </div>
                 </div>
 
-                <div class="mt-4 border-t border-slate-700 pt-3">
-                    <h3 class="text-sm font-bold text-cyan-300 mb-2 flex justify-between">
-                        <span>Pratonton Kestabilan (Blueprint)</span>
-                        <span id="blueprintStatus" class="text-xs"></span>
-                    </h3>
-                    <canvas id="blueprintCanvas" height="100" class="w-full bg-slate-900 rounded-lg border border-slate-600 shadow-inner"></canvas>
-                    <p class="text-[10px] text-slate-400 text-center mt-1">Hijau (CG) mesti berada di HADAPAN Merah (CP) untuk stabil.</p>
-                </div>
-
-                <div class="mt-4 pb-4">
-                    <button id="launchBtn" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-lg shadow-lg transform transition-all active:scale-95">
-                        🚀 LEPAS ROKET!
-                    </button>
-                </div>
             </div>
 
             <div class="w-full lg:w-2/3 flex flex-col gap-4">
@@ -195,18 +182,31 @@
                 <div class="canvas-container" id="canvasContainer">
                     <canvas id="simCanvas"></canvas>
                     
-                    <div class="absolute top-2 left-2 bg-black/70 p-3 rounded text-xs font-mono text-green-400 border border-green-500/30">
+                    <!-- TELEMETRI (KIRI ATAS) -->
+                    <div class="absolute top-2 left-2 bg-black/70 p-2 sm:p-3 rounded text-[10px] sm:text-xs font-mono text-green-400 border border-green-500/30 z-10 pointer-events-none">
                         <div class="font-bold text-white mb-1 border-b border-gray-600">TELEMETRI</div>
                         <div>MASA: <span id="hudTime">0.00</span> s</div>
                         <div>LAJU: <span id="hudVel">0.0</span> m/s</div>
                         <div>TINGGI: <span id="hudAlt">0.0</span> m</div>
-                        <div class="mt-1 flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> CG (Graviti)
+                        <div class="mt-1 flex items-center gap-1 sm:gap-2">
+                            <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500 inline-block"></span> CG (Graviti)
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> CP (Tekanan Udara)
+                        <div class="flex items-center gap-1 sm:gap-2">
+                            <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500 inline-block"></span> CP (Tekanan)
                         </div>
-                        <div id="stabilityWarn" class="text-red-400 font-bold mt-1 animate-pulse hidden">AMARAN: ROKET TIDAK STABIL!</div>
+                        <div id="stabilityWarn" class="text-red-400 font-bold mt-1 animate-pulse hidden">AMARAN: TIDAK STABIL!</div>
+                    </div>
+
+                    <!-- BLOK PELANCARAN & BLUEPRINT (KANAN ATAS) -->
+                    <div class="absolute top-2 right-2 w-[140px] sm:w-[220px] bg-black/70 backdrop-blur-md p-2 sm:p-3 rounded-lg border border-slate-500/50 z-20 shadow-xl flex flex-col gap-2">
+                        <div class="flex justify-between items-center border-b border-slate-600 pb-1">
+                            <span class="text-[10px] sm:text-xs font-bold text-cyan-300">Kestabilan</span>
+                            <span id="blueprintStatus" class="text-[10px] sm:text-xs"></span>
+                        </div>
+                        <canvas id="blueprintCanvas" height="70" class="w-full bg-slate-900 rounded border border-slate-600 shadow-inner"></canvas>
+                        <button id="launchBtn" class="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] sm:text-sm font-bold rounded shadow-lg transform transition-all active:scale-95 cursor-pointer">
+                            🚀 LEPAS ROKET!
+                        </button>
                     </div>
                 </div>
 
@@ -477,7 +477,7 @@
             const bpCtx = bpCanvas.getContext('2d');
             
             const w = bpCanvas.width = bpCanvas.clientWidth;
-            const h = bpCanvas.height = 100;
+            const h = bpCanvas.height = 70; // Dikurangkan tinggi agar muat di HUD atas
             
             const bottleMass = parseFloat(document.getElementById('weightInput').value) / 1000;
             const clayMass = parseFloat(document.getElementById('clayInput').value) / 1000;
