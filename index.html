@@ -63,6 +63,15 @@
     </div>
 
     <div class="max-w-7xl w-full">
+        <!-- BAR LOG MASUK (Kini berada di atas tajuk secara teratur) -->
+        <div class="w-full flex justify-end mb-2 z-30 relative">
+            <button id="loginBtn" class="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition hover:scale-105 cursor-pointer text-sm"><span>🛡️</span> Log Masuk DELIMa</button>
+            <div id="userInfo" class="hidden flex-col items-end bg-slate-800/90 p-2 rounded-lg border border-slate-600 shadow-xl backdrop-blur">
+                <span id="userEmail" class="text-blue-300 font-bold text-xs sm:text-sm"></span>
+                <button id="logoutBtn" class="text-xs text-red-400 hover:text-red-300 underline mt-1 cursor-pointer">Log Keluar</button>
+            </div>
+        </div>
+
         <header class="mb-6 text-center">
             <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">WRSimulator Pro (Fizik Nyata)</h1>
             <p class="text-slate-400">Oleh Cg. Jabdi Lobah (SK Bikang) | NASA Calibrated</p>
@@ -234,11 +243,11 @@
                 </div>
 
                 <div class="glass-panel p-4 rounded-xl mt-2">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-4 flex-col sm:flex-row gap-3">
                         <h3 id="lbTitle" class="text-lg font-bold text-amber-400 flex items-center gap-2">🏆 Carta Top 10 (Kategori: 60m)</h3>
-                        <div class="flex gap-2 text-sm">
-                            <input type="text" id="playerName" placeholder="Nama Anda" class="px-2 py-1 bg-slate-800 border border-slate-600 rounded text-white" maxlength="15">
-                            <button id="saveScoreBtn" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 rounded font-bold text-white transition-colors disabled:opacity-50">Simpan Skor</button>
+                        <div class="flex flex-col sm:flex-row gap-2 text-sm w-full sm:w-auto">
+                            <span id="playerNameDisp" class="px-3 py-2 sm:py-1 bg-slate-800 border border-slate-600 rounded text-slate-400 flex-1 sm:w-auto cursor-not-allowed flex items-center justify-center">Sila Log Masuk DELIMa</span>
+                            <button id="saveScoreBtn" class="px-3 py-2 sm:py-1 bg-amber-600 hover:bg-amber-500 rounded font-bold text-white transition-colors disabled:opacity-50" disabled>Simpan Skor</button>
                         </div>
                     </div>
                     <div class="w-full overflow-x-auto">
@@ -264,8 +273,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Variables
         let db, auth, currentUser;
@@ -297,28 +306,99 @@
             measurementId: "G-ZGPTJHPLTD"
         };
         const appId = 'wrsimulator-2f08c'; // Fallback path root
+        let isAdmin = false;
+        const provider = new GoogleAuthProvider();
+        
+        // Memaksa pilihan akaun Google setiap kali login
+        provider.setCustomParameters({ prompt: 'select_account' }); 
 
         try {
             const app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-            initFirebase();
+            
+            // Pantau status log masuk
+            onAuthStateChanged(auth, (user) => {
+                const loginBtn = document.getElementById('loginBtn');
+                const userInfo = document.getElementById('userInfo');
+                const saveBtn = document.getElementById('saveScoreBtn');
+                const playerNameDisp = document.getElementById('playerNameDisp');
+
+                if (user && user.email) {
+                    // Semak jika email adalah DELIMa atau admin
+                    if (user.email.endsWith('@moe-dl.edu.my') || user.email === 'sekolah-7608@moe-dl.edu.my') {
+                        currentUser = user;
+                        isFirebaseActive = true;
+                        isAdmin = (user.email === 'sekolah-7608@moe-dl.edu.my');
+                        
+                        loginBtn.classList.add('hidden');
+                        userInfo.classList.remove('hidden');
+                        userInfo.classList.add('flex');
+                        document.getElementById('userEmail').innerText = isAdmin ? '👑 ADMIN (Cg. Jabdi)' : user.displayName;
+                        
+                        playerNameDisp.innerText = user.displayName;
+                        playerNameDisp.classList.replace('text-slate-400', 'text-white');
+                        saveBtn.disabled = false;
+                        
+                        loadLeaderboard();
+                    } else {
+                        // Jika e-mel peribadi (bukan DELIMa), tendang keluar automatik
+                        signOut(auth).then(() => {
+                            showCustomMsg("Hanya e-mel rasmi DELIMa KPM dibenarkan!", true);
+                        });
+                    }
+                } else {
+                    // Mod Tetamu (Belum Log Masuk)
+                    currentUser = null;
+                    isAdmin = false;
+                    loginBtn.classList.remove('hidden');
+                    userInfo.classList.add('hidden');
+                    userInfo.classList.remove('flex');
+                    
+                    playerNameDisp.innerText = "Sila Log Masuk DELIMa";
+                    playerNameDisp.classList.replace('text-white', 'text-slate-400');
+                    saveBtn.disabled = true;
+                    
+                    // Log masuk secara awanama (hanya untuk membolehkan Firebase membaca carta)
+                    signInAnonymously(auth).then(() => {
+                        isFirebaseActive = true;
+                        loadLeaderboard();
+                    }).catch(e => {
+                        console.warn("Ralat membaca carta:", e);
+                        renderLeaderboardLocal();
+                    });
+                }
+            });
+
         } catch (e) {
             console.warn("Firebase ralat, mengaktifkan mod Offline.", e);
             renderLeaderboardLocal();
         }
 
-        async function initFirebase() {
+        // Fungsi Log Masuk & Log Keluar UI
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            signInWithPopup(auth, provider).catch(error => {
+                console.error("Ralat Log Masuk:", error);
+                showCustomMsg("Gagal log masuk Google.", true);
+            });
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => showCustomMsg("Telah log keluar."));
+        });
+
+        // Fungsi Padam Rekod (Khusus Admin)
+        window.deleteScore = async function(docId) {
+            if (!isAdmin) return;
+            // Padam rekod terus dari pangkalan data Firestore
             try {
-                await signInAnonymously(auth);
-                currentUser = auth.currentUser;
-                isFirebaseActive = true;
-                loadLeaderboard();
-            } catch (error) {
-                console.warn("Ralat Auth Firebase. Mod Luar Talian diaktifkan.");
-                renderLeaderboardLocal();
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', docId));
+                showCustomMsg("Skor dipadam oleh Admin!");
+            } catch(e) {
+                console.error("Gagal padam:", e);
+                showCustomMsg("Gagal memadam skor (Periksa Rules Firestore).", true);
             }
-        }
+        };
 
         function updateLeaderboardUI() {
             document.getElementById('lbTitle').innerHTML = `🏆 Carta Top 10 (Kategori: ${currentTarget}m)`;
@@ -361,9 +441,13 @@
             scores.forEach((s, index) => {
                 let badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
                 let errorInCm = s.errorDist * 100;
+                
+                // Butang padam muncul jika akaun Cikgu login
+                let adminDeleteBtn = isAdmin ? `<button onclick="deleteScore('${s.id}')" class="ml-2 bg-red-600/80 hover:bg-red-500 text-white text-[10px] px-2 py-0.5 rounded cursor-pointer" title="Padam Rekod">Padam</button>` : '';
+
                 tbody.innerHTML += `<tr class="border-b border-slate-700/50">
                     <td class="px-4 py-2 font-bold">${badge}</td>
-                    <td class="px-4 py-2 font-semibold text-blue-300">${s.userName}</td>
+                    <td class="px-4 py-2 font-semibold text-blue-300 flex items-center">${s.userName} ${adminDeleteBtn}</td>
                     <td class="px-4 py-2">${s.actualDist.toFixed(2)} m</td>
                     <td class="px-4 py-2 text-right text-amber-400 font-mono">${errorInCm.toFixed(1)} cm</td>
                 </tr>`;
@@ -372,44 +456,29 @@
 
         const saveBtn = document.getElementById('saveScoreBtn');
         saveBtn.addEventListener('click', async () => {
-            const pName = document.getElementById('playerName').value.trim();
+            if (!currentUser || !currentUser.email) return showCustomMsg("Sila log masuk menggunakan DELIMa!", true);
             if (!lastLaunchResult) return showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu!", true);
-            if (!pName) return showCustomMsg("Sila masukkan nama anda!", true);
 
             saveBtn.disabled = true;
             saveBtn.innerText = "Menyimpan...";
 
             const newScore = {
-                userName: pName.substring(0, 15),
+                userName: currentUser.displayName,
                 actualDist: lastLaunchResult.actualDist,
                 errorDist: lastLaunchResult.errorDist,
                 targetDist: currentTarget,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                userId: currentUser.uid
             };
 
-            if (!isFirebaseActive || !currentUser) {
-                offlineScores.push(newScore);
-                lastLaunchResult = null;
-                document.getElementById('playerName').value = "";
-                showCustomMsg("Disimpan ke Mod Luar Talian.");
-                renderLeaderboardLocal();
-                saveBtn.disabled = false;
-                saveBtn.innerText = "Simpan Skor";
-                return;
-            }
-
             try {
-                newScore.userId = currentUser.uid;
                 const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
                 await addDoc(lbRef, newScore);
                 lastLaunchResult = null;
-                document.getElementById('playerName').value = "";
                 showCustomMsg("Skor berjaya dimuat naik!");
             } catch (err) {
                 console.error("Gagal simpan awan:", err);
-                offlineScores.push(newScore);
-                renderLeaderboardLocal();
-                showCustomMsg("Ralat awan. Disimpan ke Mod Luar Talian.", true);
+                showCustomMsg("Ralat pangkalan data. Gagal menyimpan.", true);
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerText = "Simpan Skor";
