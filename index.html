@@ -84,8 +84,8 @@
                 <div>
                     <label class="flex justify-between text-sm mb-1 text-slate-300">Isipadu Air (ml)</label>
                     <div class="flex items-center gap-3">
-                        <input type="range" id="water" min="0" max="1500" value="500" class="w-full flex-1">
-                        <input type="number" id="waterInput" min="0" max="1500" value="500" class="w-20 px-2 py-1 bg-slate-800 border rounded text-blue-400 font-bold text-center">
+                        <input type="range" id="water" min="0" max="1500" value="480" class="w-full flex-1">
+                        <input type="number" id="waterInput" min="0" max="1500" value="480" class="w-20 px-2 py-1 bg-slate-800 border rounded text-blue-400 font-bold text-center">
                     </div>
                 </div>
 
@@ -108,11 +108,11 @@
                 <div class="flex gap-4 border-t border-slate-700 pt-3">
                     <div class="flex-1">
                         <label class="text-sm mb-1 text-slate-300 block">Berat Botol (g)</label>
-                        <input type="number" id="weightInput" min="10" max="200" value="50" class="w-full px-2 py-1 bg-slate-800 border rounded text-orange-400 font-bold text-center">
+                        <input type="number" id="weightInput" min="10" max="200" value="160" class="w-full px-2 py-1 bg-slate-800 border rounded text-orange-400 font-bold text-center">
                     </div>
                     <div class="flex-1">
                         <label class="text-sm mb-1 text-slate-300 block">Tanah Liat (g)</label>
-                        <input type="number" id="clayInput" min="0" max="150" value="15" class="w-full px-2 py-1 bg-slate-800 border rounded text-yellow-400 font-bold text-center">
+                        <input type="number" id="clayInput" min="0" max="150" value="50" class="w-full px-2 py-1 bg-slate-800 border rounded text-yellow-400 font-bold text-center">
                     </div>
                 </div>
 
@@ -123,11 +123,18 @@
                     </div>
                     <div class="flex-1">
                         <label class="text-sm mb-1 text-slate-300 block">Lbr Sirip (cm)</label>
-                        <input type="number" id="finWidInput" min="5" max="20" value="10" class="w-full px-2 py-1 bg-slate-800 border rounded text-cyan-400 font-bold text-center">
+                        <input type="number" id="finWidInput" min="5" max="20" value="8" class="w-full px-2 py-1 bg-slate-800 border rounded text-cyan-400 font-bold text-center">
                     </div>
                 </div>
 
                 <div class="mt-2 space-y-3 border-t border-slate-700 pt-3">
+                    <div>
+                        <label class="flex justify-between text-sm mb-1 text-slate-300">Panjang Roket (cm)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" id="rocketLen" min="20" max="100" step="1" value="55" class="w-full flex-1">
+                            <input type="number" id="rocketLenInput" min="20" max="100" step="1" value="55" class="w-20 px-2 py-1 bg-slate-800 border rounded text-purple-400 font-bold text-center">
+                        </div>
+                    </div>
                     <div>
                         <label class="flex justify-between text-sm mb-1 text-slate-300">Diameter Nozzle (mm)</label>
                         <div class="flex items-center gap-3">
@@ -428,7 +435,7 @@
                 });
             }
         }
-        ['targetDist','water','psi','angle','weight','clay','finLen','finWid','nozzleDia'].forEach(id => syncInputs(id, id+'Input'));
+        ['targetDist','water','psi','angle','weight','clay','finLen','finWid','nozzleDia','rocketLen'].forEach(id => syncInputs(id, id+'Input'));
         
         document.getElementById('rail').addEventListener('input', e => { document.getElementById('railDisp').innerText = e.target.value; });
         document.getElementById('parachute').addEventListener('input', e => { document.getElementById('paraDisp').innerText = e.target.value; });
@@ -474,14 +481,19 @@
             const clayMass = parseFloat(document.getElementById('clayInput').value) / 1000;
             const fLen = parseFloat(document.getElementById('finLenInput').value);
             const fWid = parseFloat(document.getElementById('finWidInput').value);
+            const rLenCM = parseFloat(document.getElementById('rocketLenInput').value);
+            const rLenM = rLenCM / 100;
 
             const finAreaCM2 = (fLen * fWid * 0.5) * 3;
             const finMass = (finAreaCM2 * 0.1 * 1.2) / 1000; 
             const dryMass = bottleMass + clayMass + finMass;
             
-            // Formula Kestabilan (CG vs CP)
-            const cgPos = ((bottleMass * 0.15) + (clayMass * 0.3) + (finMass * 0.0)) / dryMass;
-            const cpPos = 0.15 - (finAreaCM2 * 0.0003); 
+            // Formula Kestabilan (Barrowman berasaskan Panjang Roket Sebenar)
+            // CG: Botol berat sedikit ke arah muncung (0.35), Tanah liat di hujung hidung (0.95), Sirip di tapak (0.05).
+            const cgPos = ((bottleMass * rLenM * 0.35) + (clayMass * rLenM * 0.95) + (finMass * 0.05)) / dryMass;
+            
+            // CP: Tolakan aerodinamik botol base + tarikan sirip ke belakang
+            const cpPos = (rLenM * 0.5) - (finAreaCM2 * 0.0008); 
             const isStable = cgPos > cpPos;
 
             bpCtx.clearRect(0,0,w,h);
@@ -532,9 +544,9 @@
             bpCtx.lineTo(tailX, midY + 15);
             bpCtx.fill();
 
-            // Titik CG dan CP
-            const cgPx = tailX + (cgPos / 0.3) * length;
-            const cpPx = tailX + (cpPos / 0.3) * length;
+            // Titik CG dan CP (skala berpandukan panjang roket sebenar)
+            const cgPx = tailX + (cgPos / rLenM) * length;
+            const cpPx = tailX + (cpPos / rLenM) * length;
 
             // Garisan CG (Hijau)
             bpCtx.strokeStyle = '#4ade80'; bpCtx.lineWidth = 2;
@@ -599,6 +611,8 @@
             const clayMass = parseFloat(document.getElementById('clayInput').value) / 1000;
             const fLen = parseFloat(document.getElementById('finLenInput').value);
             const fWid = parseFloat(document.getElementById('finWidInput').value);
+            const rLenCM = parseFloat(document.getElementById('rocketLenInput').value);
+            const rLenM = rLenCM / 100;
             const nozzleMM = parseFloat(document.getElementById('nozzleDiaInput').value);
             const railLen = parseFloat(document.getElementById('rail').value);
             const paraSize = parseFloat(document.getElementById('parachute').value) / 100;
@@ -612,29 +626,57 @@
             const waterMass = waterML / 1000;
             
             // CG & CP Calculation
-            // Anggap roket 30cm (0.3m). Hidung = 0.3m, Ekor = 0.0m
-            const cgPos = ((bottleMass * 0.15) + (clayMass * 0.3) + (finMass * 0.0)) / dryMass;
-            const cpPos = 0.15 - (finAreaCM2 * 0.0003); // Sirip besar tolak CP ke belakang (ekor)
-            const isStable = cgPos > cpPos; // Stabil jika CG di depan CP
+            const cgPos = ((bottleMass * rLenM * 0.35) + (clayMass * rLenM * 0.95) + (finMass * 0.05)) / dryMass;
+            const cpPos = (rLenM * 0.5) - (finAreaCM2 * 0.0008); 
+            const isStable = cgPos > cpPos; 
             
-            // Thrust
-            const pPascal = psi * 6894.76;
-            const nozzleArea = Math.PI * Math.pow((nozzleMM/1000)/2, 2);
-            const thrust = 2 * pPascal * nozzleArea;
-            const massFlow = nozzleArea * Math.sqrt(2 * pPascal * 1000);
-            const tDuration = massFlow > 0 ? waterMass / massFlow : 0;
+            // --- ENJIN FIZIK TERMODINAMIK (PENGEMBANGAN ADIABATIK) ---
+            const pAtm = 101325; // Tekanan atmosfera (Pascal)
+            const pGauge = psi * 6894.76; // Tekanan tolok PSI ke Pascal
+            const pAbs = pGauge + pAtm; // Tekanan mutlak (Absolute Pressure)
+            const vBottle = 1500 / 1000000; // Kapasiti botol (1.5L ke meter padu)
+            const vWater = waterML / 1000000; // Isipadu air
+            const vAirInitial = vBottle - vWater; // Ruang udara awal
             
-            let nozzleEff = 0.90 - (Math.abs(nozzleMM - 9.0) * 0.03);
+            // Hukum Pengembangan Adiabatik (Gamma = 1.4)
+            // Kira isipadu maksimum udara boleh mengembang sebelum tekanannya jatuh ke 1 ATM
+            const vExpMax = vAirInitial * Math.pow(pAbs / pAtm, 1 / 1.4);
+            
+            // Air sebenar yang BERJAYA ditolak keluar dari muncung
+            const vWaterExpelled = Math.min(vWater, Math.max(0, vExpMax - vAirInitial));
+            
+            // Air yang TERPERANGKAP (Dead Water) kerana botol sudah kehabisan tekanan!
+            const deadWaterVol = Math.max(0, vWater - vWaterExpelled);
+            const deadWaterMass = deadWaterVol * 1000; // Menjadi beban mati (kilogram)
+            
+            const vExpFinal = vAirInitial + vWaterExpelled;
+            
+            // Tenaga Kerja (Work Done) oleh udara untuk menolak air
+            const workAir = (pAbs * vAirInitial / 0.4) * (1 - Math.pow(vAirInitial / vExpFinal, 0.4));
+            // Tolak tenaga yang dihabiskan melawan tekanan persekitaran
+            const workNet = Math.max(0, workAir - (pAtm * vWaterExpelled)); 
+            
+            // Pengiraan Impuls Sebenar (Kinetik ke Momentum)
+            const mWaterExpelled = vWaterExpelled * 1000; // Jisim air yang terpancut
+            let totalImpulse = 0;
+            if (mWaterExpelled > 0 && workNet > 0) {
+                totalImpulse = Math.sqrt(2 * mWaterExpelled * workNet);
+            }
+            
+            // Kecekapan Nozzle (Optimum pada saiz standard 9.0mm)
+            let nozzleEff = 0.85 - (Math.abs(nozzleMM - 9.0) * 0.02);
             if(nozzleEff < 0.4) nozzleEff = 0.4;
             
-            // Kalibrasi baharu: 60psi + 500ml + 45deg + 50g clay -> ~60m.
+            // Kalibrasi Aerodinamik Data Dunia Sebenar (224g Total, 480ml, 60 PSI, 45 Deg, 0.8m Rail)
             const calibrationFactor = 1.62; 
-            const totalImpulse = thrust * tDuration * nozzleEff * calibrationFactor; 
-            const avgMass = dryMass + (waterMass/3); // Jisim efektif semasa pecutan
-            let vInit = avgMass > 0 ? (totalImpulse / avgMass) : 0;
+            totalImpulse = totalImpulse * nozzleEff * calibrationFactor; 
             
-            if (waterML < 300 || waterML > 900) vInit *= 0.6; // Penalti berat jika nisbah air tidak logik
-            vInit -= (railLen * 0.2); // Geseran rail
+            // Jisim keseluruhan roket semasa fasa pelancaran
+            // Dry Mass + Beban Air Terperangkap + (Separuh Air yang sedang keluar)
+            const avgMass = dryMass + deadWaterMass + (mWaterExpelled / 2);
+            
+            let vInit = avgMass > 0 ? (totalImpulse / avgMass) : 0;
+            vInit -= (railLen * 0.15); // Geseran rail
 
             const rad = angleDeg * Math.PI / 180;
             
@@ -643,14 +685,16 @@
                 vx: vInit * Math.cos(rad),
                 vy: vInit * Math.sin(rad),
                 vz: 0,
-                mass: dryMass,
+                mass: dryMass + deadWaterMass, // Jisim di udara kekal berat jika ada air terperangkap!
+                deadWater: deadWaterMass, // Rujukan rekod AI
                 angle: rad,
                 isStable: isStable,
                 cg: cgPos,
                 cp: cpPos,
+                rLenM: rLenM, // Simpan panjang untuk visualisasi canvas
                 para: paraSize,
                 paraDeployed: false,
-                crossArea: 0.005 + (finAreaCM2 * 0.00003) // Seretan (drag) yang dikalibrasi semula
+                crossArea: (0.005 * (rLenM / 0.55)) + (finAreaCM2 * 0.00003) // Seretan dikalibrasi dgn profil panjang roket 55cm
             };
             
             const wRad = (windDir - 90) * (Math.PI / 180);
@@ -768,9 +812,9 @@
                 simCtx.fillStyle = '#cbd5e1'; simCtx.fillRect(-15, -4, 30, 8);
                 simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.moveTo(15,-4); simCtx.lineTo(22,0); simCtx.lineTo(15,4); simCtx.fill();
                 
-                // CG & CP Dots (Map 0.0-0.3m to -15px to +15px)
-                const cgPx = (rocket.cg / 0.3) * 30 - 15;
-                const cpPx = (rocket.cp / 0.3) * 30 - 15;
+                // CG & CP Dots (Dipetakan kepada nisbah panjang sebenar roket)
+                const cgPx = (rocket.cg / rocket.rLenM) * 30 - 15;
+                const cpPx = (rocket.cp / rocket.rLenM) * 30 - 15;
                 simCtx.fillStyle = '#22c55e'; simCtx.beginPath(); simCtx.arc(cgPx, 0, 3, 0, Math.PI*2); simCtx.fill(); // Green CG
                 simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.arc(cpPx, 0, 3, 0, Math.PI*2); simCtx.fill(); // Red CP
 
@@ -867,11 +911,15 @@
             lastLaunchResult = { actualDist: dist, errorDist: errMeters };
             
             const aiText = document.getElementById('aiFeedback');
-            if (!rocket.isStable) {
-                aiText.innerHTML = "AI Analisis: ROKET TIDAK STABIL! Tambah plastisin (tanah liat) sekitar 40g-60g di hidung untuk mengalihkan Pusat Graviti (CG) ke hadapan dan mengelakkan roket berpusing di udara.";
+            
+            if (rocket.deadWater > 0.05) {
+                aiText.innerHTML = `⚠️ AI Analisis (Fizik): Ralat Kritikal! Ruang udara mampat terlalu kecil. Botol kehabisan tekanan di tengah jalan dan memerangkap ${(rocket.deadWater * 1000).toFixed(0)} gram "Air Mati" sebagai beban fizikal. Kurangkan isipadu air!`;
+                aiText.className = "text-sm text-red-400 font-bold";
+            } else if (!rocket.isStable) {
+                aiText.innerHTML = "AI Analisis: ROKET TIDAK STABIL! Tambah plastisin (tanah liat) di hidung untuk mengalihkan Pusat Graviti (CG) ke hadapan dan mengelakkan roket berpusing di udara.";
                 aiText.className = "text-sm text-red-400 font-bold";
             } else if (errMeters <= 2.0) {
-                aiText.innerHTML = "AI Analisis (Calibrated): Sempurna! Mengikut tetapan asas (60 PSI @ 45°), konfigurasi ini mencatat jarak ketepatan cemerlang. WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
+                aiText.innerHTML = "AI Analisis (Data Dunia Sebenar): Sempurna! Mengikut piawaian penerbangan sebenar (224g, 480ml, 60 PSI, Rail 0.8m), konfigurasi ini mencatat jarak ketepatan cemerlang. WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
                 aiText.className = "text-sm text-emerald-400 font-bold";
             } else if (dist < currentTarget) {
                 aiText.innerHTML = "AI Analisis: Roket jatuh terkurang jarak. Naikkan tekanan udara secara perlahan (cth: 62-65 PSI), ATAU kurangkan sedikit air kepada 450mL.";
