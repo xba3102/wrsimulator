@@ -416,6 +416,14 @@
             document.getElementById('btnPertandingan').className = "flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm";
             document.getElementById('saveScoreBtn').disabled = true;
             document.getElementById('saveScoreBtn').innerText = "Skor (Hanya Pertandingan)";
+            
+            // Reset Keputusan UI
+            lastLaunchResult = null;
+            document.getElementById('resultDist').innerText = "0.0 m";
+            document.getElementById('resultError').innerText = "0.0 cm";
+            document.getElementById('aiFeedback').innerHTML = "Sistem sedia. Tetapkan parameter dan lancar.";
+            document.getElementById('aiFeedback').className = "text-sm text-yellow-400";
+            
             showCustomMsg("Mod Latihan: Tiada rekod, angin dihentikan.");
         });
 
@@ -426,6 +434,14 @@
             document.getElementById('btnLatihan').className = "flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm";
             document.getElementById('saveScoreBtn').disabled = false;
             document.getElementById('saveScoreBtn').innerText = "Simpan Skor";
+            
+            // Reset Keputusan UI
+            lastLaunchResult = null;
+            document.getElementById('resultDist').innerText = "0.0 m";
+            document.getElementById('resultError').innerText = "0.0 cm";
+            document.getElementById('aiFeedback').innerHTML = "Sistem sedia. Tetapkan parameter dan lancar.";
+            document.getElementById('aiFeedback').className = "text-sm text-yellow-400";
+            
             showCustomMsg("Mod Pertandingan Aktif! Angin berfungsi & percubaan direkod.");
         });
 
