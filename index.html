@@ -969,6 +969,7 @@
                 rLenM: rLenM, // Simpan panjang untuk visualisasi canvas
                 para: paraSize,
                 paraDeployed: false,
+                paraOpenRatio: 0,
                 crossArea: (0.005 * (rLenM / 0.55)) + (finAreaCM2 * 0.00003) // Seretan dikalibrasi dgn profil panjang roket 55cm
             };
             
@@ -1005,16 +1006,23 @@
                     rocket.angle = Math.atan2(rocket.vy, rocket.vx);
                 }
 
-                if (rocket.vy < 0 && rocket.para > 0 && !rocket.paraDeployed) {
+                if (rocket.vy < 0 && rocket.para > 0 && !rocket.paraDeployed && vMag < 15) {
                     rocket.paraDeployed = true;
+                    rocket.paraOpenRatio = 0.1; // start opening gradually
                 }
                 
                 if (rocket.paraDeployed) {
+                    if (rocket.paraOpenRatio < 1.0) {
+                        rocket.paraOpenRatio += 2.0 * dT; // Takes about 0.5 seconds to fully open
+                        if(rocket.paraOpenRatio > 1.0) rocket.paraOpenRatio = 1.0;
+                    }
                     cd = 1.5;
-                    area = Math.PI * Math.pow(rocket.para/2, 2);
+                    area = Math.PI * Math.pow(rocket.para/2, 2) * rocket.paraOpenRatio;
                 }
                 
-                const drag = 0.5 * 1.225 * vMag * vMag * cd * area;
+                let drag = 0.5 * 1.225 * vMag * vMag * cd * area;
+                const maxDrag = (rocket.mass * vMag) / dT; // Max force that stops the rocket in 1 frame
+                drag = Math.min(drag, maxDrag * 0.95); // Limit drag to prevent reverse shooting
                 
                 rocket.vx += (-(drag * (relVx/vMag)) / rocket.mass) * dT;
                 rocket.vy += (-(drag * (rocket.vy/vMag)) / rocket.mass - 9.81) * dT;
