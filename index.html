@@ -3,190 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WRSimulator Pro - Edisi Stabil</title>
+    <title>WRSimulator Pro - Edisi Sci-Fi</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #020617; /* Very dark slate */
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            color: #e2e8f0;
             margin: 0;
             overflow-x: hidden;
         }
+        
+        /* Modern Glowing Sliders */
         input[type=range] {
-            accent-color: #3b82f6;
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
         }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #22d3ee;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 12px #22d3ee, 0 0 4px #fff;
+            border: 2px solid #083344;
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 2px;
+            border: 1px solid #334155;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(34, 211, 238, 0.03);
+            position: relative;
+        }
+        .glass-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.5), transparent);
+        }
+
+        /* Input Numbers Sci-Fi Style */
+        input[type=number], select {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: rgba(2, 6, 23, 0.8) !important;
+            border: 1px solid rgba(34, 211, 238, 0.3) !important;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+            transition: all 0.2s;
+        }
+        input[type=number]:focus, select:focus {
+            outline: none;
+            border-color: #22d3ee !important;
+            box-shadow: 0 0 10px rgba(34,211,238,0.4), inset 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        /* Canvas Simulation Area */
         .canvas-container {
             position: relative;
             width: 100%;
             height: 45vh;
             min-height: 350px;
-            background: linear-gradient(to bottom, #0284c7 0%, #7dd3fc 100%);
-            border-radius: 0.75rem;
+            background: linear-gradient(to bottom, #041224 0%, #0c4a6e 100%);
+            border-radius: 0.5rem;
             overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(34, 211, 238, 0.5);
+            box-shadow: 0 0 25px rgba(6,182,212,0.2), inset 0 0 50px rgba(0,0,0,0.5);
         }
+        
+        /* Sci-Fi Corners for Canvas */
+        .canvas-container::after, .radar-container::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            border: 2px solid rgba(34, 211, 238, 0.1);
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.05) 0%, transparent 20%, transparent 80%, rgba(34, 211, 238, 0.05) 100%);
+        }
+
+        /* Radar Area */
         .radar-container {
             width: 100%;
             height: 150px;
-            background-color: #064e3b;
-            border-radius: 0.75rem;
+            background-color: #022c22;
+            border-radius: 0.5rem;
             overflow: hidden;
-            border: 2px solid #34d399;
+            border: 1px solid #10b981;
+            box-shadow: 0 0 20px rgba(16,185,129,0.2), inset 0 0 30px rgba(0,0,0,0.6);
             position: relative;
         }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* Tactical Launch Button */
+        #launchBtn {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border: 1px solid #0ea5e9 !important;
+            color: #38bdf8 !important;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4), inset 0 0 15px rgba(14, 165, 233, 0.2) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.25rem !important;
+            position: relative;
+            overflow: hidden;
         }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        #launchBtn:hover:not(:disabled) {
+            background: rgba(14, 165, 233, 0.2) !important;
+            box-shadow: 0 0 25px rgba(14, 165, 233, 0.7), inset 0 0 20px rgba(14, 165, 233, 0.4) !important;
+            color: #fff !important;
+            border-color: #38bdf8 !important;
         }
-        .scroll-panel::-webkit-scrollbar { width: 6px; }
-        .scroll-panel::-webkit-scrollbar-track { background: #1e293b; }
-        .scroll-panel::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        #launchBtn:disabled {
+            border-color: #475569 !important; color: #64748b !important; box-shadow: none !important; text-shadow: none !important;
+        }
+
+        /* Overriding JS Mode Button Styles to keep Sci-Fi Look intact */
+        #btnLatihan, #btnPertandingan {
+            text-transform: uppercase; letter-spacing: 1px; font-weight: 700; border: 1px solid transparent;
+        }
+        #btnLatihan.bg-blue-600 {
+            background: rgba(14, 165, 233, 0.15) !important;
+            border-color: #0ea5e9 !important;
+            color: #38bdf8 !important;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.3) !important;
+            text-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
+        }
+        #btnPertandingan.bg-amber-600 {
+            background: rgba(245, 158, 11, 0.15) !important;
+            border-color: #f59e0b !important;
+            color: #fbbf24 !important;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3) !important;
+            text-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+        }
         
-        /* Custom Toast Msg */
-        #toastMsg {
-            transition: all 0.3s ease-in-out;
-            z-index: 50;
+        /* Font Monospaces for Telemetry */
+        .telemetry-font { font-family: 'JetBrains Mono', monospace; }
+        .text-glow-cyan { text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); }
+
+        #toastMsg { transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 50; }
+        
+        /* Blueprint Canvas Specific styling */
+        #blueprintCanvas {
+            background: rgba(2, 6, 23, 0.8) !important;
+            border-color: rgba(34, 211, 238, 0.3) !important;
         }
     </style>
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center">
 
-    <div id="toastMsg" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl font-bold opacity-0 translate-y-[-100%] pointer-events-none">
+    <div id="toastMsg" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-cyan-500 text-cyan-400 px-6 py-3 rounded-md shadow-[0_0_20px_rgba(6,182,212,0.4)] font-bold opacity-0 translate-y-[-100%] pointer-events-none uppercase tracking-wider text-sm telemetry-font">
         Mesej Sistem
     </div>
 
     <div class="max-w-7xl w-full">
-        <!-- BAR LOG MASUK (Kini berada di atas tajuk secara teratur) -->
+        <!-- BAR LOG MASUK -->
         <div class="w-full flex justify-end mb-2 z-30 relative">
-            <button id="loginBtn" class="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 transform transition hover:scale-105 cursor-pointer text-sm"><span>🛡️</span> Log Masuk DELIMa</button>
-            <div id="userInfo" class="hidden flex-col items-end bg-slate-800/90 p-2 rounded-lg border border-slate-600 shadow-xl backdrop-blur">
-                <span id="userEmail" class="text-blue-300 font-bold text-xs sm:text-sm"></span>
-                <button id="logoutBtn" class="text-xs text-red-400 hover:text-red-300 underline mt-1 cursor-pointer">Log Keluar</button>
+            <button id="loginBtn" class="px-5 py-2 bg-slate-800 border border-emerald-500/50 hover:bg-emerald-900/40 text-emerald-400 rounded font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)] flex items-center gap-2 transform transition cursor-pointer text-sm uppercase tracking-wide">
+                <span class="drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]">⚡</span> Sistem Akses
+            </button>
+            <div id="userInfo" class="hidden flex-col items-end bg-slate-900/95 p-3 rounded border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)] backdrop-blur">
+                <span id="userEmail" class="text-cyan-400 font-bold text-xs sm:text-sm telemetry-font tracking-wide"></span>
+                <button id="logoutBtn" class="text-xs text-red-400 hover:text-red-300 hover:text-shadow-[0_0_5px_red] uppercase tracking-wider mt-1 cursor-pointer transition">Putus Sambungan</button>
             </div>
         </div>
 
-        <header class="mb-6 text-center">
-            <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">WRSimulator Pro (Fizik Nyata)</h1>
-            <p class="text-slate-400">Oleh Cg. Jabdi Lobah (SK Bikang) | Edisi Fizik Realistik</p>
+        <header class="mb-8 text-center relative">
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-16 bg-cyan-500/20 blur-[50px] -z-10"></div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 mb-2 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)] tracking-widest uppercase">
+                WRSimulator Pro
+            </h1>
+            <p class="text-cyan-500/70 telemetry-font text-sm tracking-[0.2em] uppercase">Sistem Fizik Realistik V3.0 // Cg. Jabdi Lobah</p>
         </header>
 
         <!-- BUTANG PEMILIHAN MOD -->
-        <div class="flex gap-4 w-full md:w-2/3 lg:w-1/2 mx-auto mb-6">
-            <button id="btnLatihan" class="flex-1 py-2 bg-blue-600 text-white font-bold rounded-md transition-colors text-sm shadow-lg">Mod Latihan (Tiada Angin)</button>
-            <button id="btnPertandingan" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm">Mod Pertandingan (Angin Aktif)</button>
+        <div class="flex gap-4 w-full md:w-2/3 lg:w-1/2 mx-auto mb-8">
+            <button id="btnLatihan" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded transition-colors text-sm shadow-lg">Simulasi Latihan</button>
+            <button id="btnPertandingan" class="flex-1 py-3 bg-slate-700 hover:bg-slate-800 text-slate-400 font-bold rounded transition-colors text-sm">Mod Pertandingan</button>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6">
             
+            <!-- PANEL KAWALAN KIRI -->
             <div class="glass-panel p-6 rounded-xl w-full lg:w-1/3 flex flex-col gap-4">
-                <h2 class="text-xl font-bold text-blue-300 border-b border-slate-600 pb-2">Panel Kawalan</h2>
+                <h2 class="text-xl font-bold text-cyan-400 border-b border-cyan-900/50 pb-3 mb-2 tracking-widest uppercase flex items-center gap-2">
+                    <span class="inline-block w-2 h-5 bg-cyan-500 rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
+                    Parameter
+                </h2>
                 
-                <div>
-                    <label class="flex justify-between text-sm mb-1 text-slate-300">Sasaran Jarak (Meter)</label>
+                <div class="group">
+                    <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Sasaran Jarak (M)</label>
                     <div class="flex items-center gap-3">
                         <input type="range" id="targetDist" min="10" max="100" step="5" value="60" class="w-full flex-1">
-                        <input type="number" id="targetDistInput" min="10" max="100" value="60" class="w-20 px-2 py-1 bg-slate-800 border rounded text-purple-400 font-bold text-center">
+                        <input type="number" id="targetDistInput" min="10" max="100" value="60" class="w-20 px-2 py-1 rounded text-cyan-400 text-center">
                     </div>
                 </div>
 
-                <div>
-                    <label class="flex justify-between text-sm mb-1 text-slate-300">Isipadu Air (ml)</label>
+                <div class="group">
+                    <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Isipadu Bendalir (ml)</label>
                     <div class="flex items-center gap-3">
                         <input type="range" id="water" min="0" max="1500" value="480" class="w-full flex-1">
-                        <input type="number" id="waterInput" min="0" max="1500" value="480" class="w-20 px-2 py-1 bg-slate-800 border rounded text-blue-400 font-bold text-center">
+                        <input type="number" id="waterInput" min="0" max="1500" value="480" class="w-20 px-2 py-1 rounded text-blue-400 text-center">
                     </div>
                 </div>
 
-                <div>
-                    <label class="flex justify-between text-sm mb-1 text-slate-300">Tekanan (PSI)</label>
+                <div class="group">
+                    <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Tekanan Reaktor (PSI)</label>
                     <div class="flex items-center gap-3">
                         <input type="range" id="psi" min="10" max="100" value="60" class="w-full flex-1">
-                        <input type="number" id="psiInput" min="10" max="100" value="60" class="w-20 px-2 py-1 bg-slate-800 border rounded text-red-400 font-bold text-center">
+                        <input type="number" id="psiInput" min="10" max="100" value="60" class="w-20 px-2 py-1 rounded text-red-400 text-center">
                     </div>
                 </div>
 
-                <div>
-                    <label class="flex justify-between text-sm mb-1 text-slate-300">Sudut Pelancaran (°)</label>
+                <div class="group">
+                    <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Sudut Pelancaran (°)</label>
                     <div class="flex items-center gap-3">
                     <input type="range" id="angle" min="10" max="90" value="45" class="w-full flex-1">
-                    <input type="number" id="angleInput" min="10" max="90" value="45" class="w-20 px-2 py-1 bg-slate-800 border rounded text-emerald-400 font-bold text-center">
+                    <input type="number" id="angleInput" min="10" max="90" value="45" class="w-20 px-2 py-1 rounded text-emerald-400 text-center">
                 </div>
             </div>
 
-            <div>
-                <label class="flex justify-between text-sm mb-1 text-slate-300">Sudut Mendatar / Yaw (°)</label>
+            <div class="group">
+                <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Sudut Mendatar / Yaw (°)</label>
                 <div class="flex items-center gap-3">
                     <input type="range" id="yaw" min="-45" max="45" value="0" class="w-full flex-1">
-                    <input type="number" id="yawInput" min="-45" max="45" value="0" class="w-20 px-2 py-1 bg-slate-800 border rounded text-indigo-400 font-bold text-center">
+                    <input type="number" id="yawInput" min="-45" max="45" value="0" class="w-20 px-2 py-1 rounded text-indigo-400 text-center">
                 </div>
-                <p class="text-xs text-slate-500 mt-1">(- Kiri | + Kanan) Lawan arah angin lintang.</p>
+                <p class="text-[10px] text-slate-500 mt-1 uppercase">[- Kiri | + Kanan] Imbangan angin lintang</p>
             </div>
 
-            <div class="flex gap-4 border-t border-slate-700 pt-3">
-                <div class="flex-1">
-                    <label class="text-sm mb-1 text-slate-300 block">Berat Botol (g)</label>
+            <div class="flex gap-4 border-t border-cyan-900/50 pt-4 mt-1">
+                <div class="flex-1 group">
+                    <label class="text-xs mb-1 text-cyan-200/70 block uppercase tracking-wider">Jisim Botol (g)</label>
                     <input type="range" id="weight" min="10" max="300" value="160" class="w-full mb-2">
-                    <input type="number" id="weightInput" min="10" max="300" value="160" class="w-full px-2 py-1 bg-slate-800 border rounded text-orange-400 font-bold text-center">
+                    <input type="number" id="weightInput" min="10" max="300" value="160" class="w-full px-2 py-1 rounded text-orange-400 text-center">
                 </div>
-                <div class="flex-1">
-                    <label class="text-sm mb-1 text-slate-300 block">Tanah Liat (g)</label>
+                <div class="flex-1 group">
+                    <label class="text-xs mb-1 text-cyan-200/70 block uppercase tracking-wider">Pemberat Hidung (g)</label>
                     <input type="range" id="clay" min="0" max="150" value="50" class="w-full mb-2">
-                    <input type="number" id="clayInput" min="0" max="150" value="50" class="w-full px-2 py-1 bg-slate-800 border rounded text-yellow-400 font-bold text-center">
+                    <input type="number" id="clayInput" min="0" max="150" value="50" class="w-full px-2 py-1 rounded text-yellow-400 text-center">
                 </div>
             </div>
 
             <div class="flex gap-4 mt-2">
-                <div class="flex-1">
-                    <label class="text-sm mb-1 text-slate-300 block">Pjg Sirip (cm)</label>
+                <div class="flex-1 group">
+                    <label class="text-xs mb-1 text-cyan-200/70 block uppercase tracking-wider">Pjg Sirip (cm)</label>
                     <input type="range" id="finLen" min="5" max="20" value="10" class="w-full mb-2">
-                    <input type="number" id="finLenInput" min="5" max="20" value="10" class="w-full px-2 py-1 bg-slate-800 border rounded text-cyan-400 font-bold text-center">
+                    <input type="number" id="finLenInput" min="5" max="20" value="10" class="w-full px-2 py-1 rounded text-cyan-400 text-center">
                 </div>
-                <div class="flex-1">
-                    <label class="text-sm mb-1 text-slate-300 block">Lbr Sirip (cm)</label>
+                <div class="flex-1 group">
+                    <label class="text-xs mb-1 text-cyan-200/70 block uppercase tracking-wider">Lbr Sirip (cm)</label>
                     <input type="range" id="finWid" min="5" max="20" value="8" class="w-full mb-2">
-                    <input type="number" id="finWidInput" min="5" max="20" value="8" class="w-full px-2 py-1 bg-slate-800 border rounded text-cyan-400 font-bold text-center">
+                    <input type="number" id="finWidInput" min="5" max="20" value="8" class="w-full px-2 py-1 rounded text-cyan-400 text-center">
                 </div>
             </div>
 
-            <div class="mt-2 space-y-3 border-t border-slate-700 pt-3">
-                    <div>
-                        <label class="flex justify-between text-sm mb-1 text-slate-300">Panjang Roket (cm)</label>
+            <div class="mt-2 space-y-4 border-t border-cyan-900/50 pt-4">
+                    <div class="group">
+                        <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Panjang Sumbu (cm)</label>
                         <div class="flex items-center gap-3">
                             <input type="range" id="rocketLen" min="20" max="100" step="1" value="55" class="w-full flex-1">
-                            <input type="number" id="rocketLenInput" min="20" max="100" step="1" value="55" class="w-20 px-2 py-1 bg-slate-800 border rounded text-purple-400 font-bold text-center">
+                            <input type="number" id="rocketLenInput" min="20" max="100" step="1" value="55" class="w-20 px-2 py-1 rounded text-purple-400 text-center">
                         </div>
                     </div>
-                    <div>
-                        <label class="flex justify-between text-sm mb-1 text-slate-300">Diameter Nozzle (mm)</label>
+                    <div class="group">
+                        <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Diameter Nozel (mm)</label>
                         <div class="flex items-center gap-3">
                             <input type="range" id="nozzleDia" min="5" max="25" step="0.5" value="9.0" class="w-full flex-1">
-                            <input type="number" id="nozzleDiaInput" min="5" max="25" step="0.5" value="9.0" class="w-20 px-2 py-1 bg-slate-800 border rounded text-gray-300 font-bold text-center">
+                            <input type="number" id="nozzleDiaInput" min="5" max="25" step="0.5" value="9.0" class="w-20 px-2 py-1 rounded text-slate-300 text-center">
                         </div>
                     </div>
-                    <div>
-                        <label class="text-sm text-slate-300 block mb-1">Panjang Rail (Meter)</label>
+                    <div class="group">
+                        <label class="text-xs text-cyan-200/70 block mb-1 uppercase tracking-wider">Panjang Landasan (M)</label>
                         <input type="range" id="rail" min="0" max="3" step="0.5" value="1.0" class="w-full">
-                        <div class="text-xs text-right text-slate-400"><span id="railDisp">1.0</span> m</div>
+                        <div class="text-xs text-right text-cyan-500 telemetry-font mt-1"><span id="railDisp">1.0</span> m</div>
                     </div>
-                    <div>
-                        <label class="text-sm text-slate-300 block mb-1">Saiz Payung Terjun (cm)</label>
+                    <div class="group">
+                        <label class="text-xs text-cyan-200/70 block mb-1 uppercase tracking-wider">Saiz Payung Terjun (cm)</label>
                         <input type="range" id="parachute" min="0" max="100" step="5" value="0" class="w-full">
-                        <div class="text-xs text-right text-slate-400"><span id="paraDisp">0</span> cm</div>
+                        <div class="text-xs text-right text-cyan-500 telemetry-font mt-1"><span id="paraDisp">0</span> cm</div>
                     </div>
                 </div>
 
-                <div class="mt-2 border-t border-slate-700 pt-3 pb-2">
-                    <label class="text-sm mb-1 text-slate-300 block">Kelajuan Angin (m/s & km/j)</label>
+                <div class="mt-2 border-t border-cyan-900/50 pt-4 pb-2 bg-slate-900/40 p-3 rounded border border-cyan-900/30">
+                    <label class="text-xs mb-2 text-emerald-400 block uppercase tracking-widest font-bold">Vektor Angin (m/s & km/j)</label>
                     <input type="range" id="wind" min="0" max="15" step="0.1" value="0" class="w-full">
-                    <div class="flex justify-between items-center mt-1">
-                        <select id="windDir" class="px-2 py-1 bg-slate-800 border rounded text-gray-300 text-sm">
+                    <div class="flex justify-between items-center mt-3 gap-2">
+                        <select id="windDir" class="px-2 py-1 rounded text-emerald-300 text-xs w-2/3 uppercase tracking-wider border-emerald-900">
                             <option value="0">Utara</option>
                             <option value="45">Timur Laut</option>
                             <option value="90" selected>Timur</option>
@@ -196,90 +316,102 @@
                             <option value="270">Barat</option>
                             <option value="315">Barat Laut</option>
                         </select>
-                        <span class="text-sm text-gray-400 font-bold" id="windDisp">Auto (Rawak)</span>
+                        <span class="text-xs text-emerald-400 font-bold telemetry-font w-1/3 text-right" id="windDisp">AUTO</span>
                     </div>
                 </div>
-            </div> <!-- Ini menutup Panel Kawalan Kiri supaya tak bergabung -->
+            </div> <!-- Ini menutup Panel Kawalan Kiri -->
 
-            <div class="w-full lg:w-2/3 flex flex-col gap-4">
+            <!-- KAWASAN KANAN (SIMULASI & DATA) -->
+            <div class="w-full lg:w-2/3 flex flex-col gap-5">
                 
                 <div class="canvas-container" id="canvasContainer">
                     <canvas id="simCanvas"></canvas>
                     
                     <!-- TELEMETRI (KIRI ATAS) -->
-                    <div class="absolute top-2 left-2 bg-black/70 p-2 sm:p-3 rounded text-[10px] sm:text-xs font-mono text-green-400 border border-green-500/30 z-10 pointer-events-none">
-                        <div class="font-bold text-white mb-1 border-b border-gray-600">TELEMETRI</div>
-                        <div>MASA: <span id="hudTime">0.00</span> s</div>
-                        <div>LAJU: <span id="hudVel">0.0</span> m/s</div>
-                        <div>TINGGI: <span id="hudAlt">0.0</span> m</div>
-                        <div class="mt-1 flex items-center gap-1 sm:gap-2">
-                            <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500 inline-block"></span> CG (Graviti)
+                    <div class="absolute top-3 left-3 bg-slate-950/80 p-3 rounded text-[10px] sm:text-xs telemetry-font text-emerald-400 border border-emerald-500/50 z-10 pointer-events-none shadow-[0_0_15px_rgba(16,185,129,0.2)] backdrop-blur-sm">
+                        <div class="font-bold text-cyan-300 mb-2 border-b border-cyan-800 pb-1 tracking-widest">SYS_TELEMETRI</div>
+                        <div class="mb-1">T_MASA: <span id="hudTime" class="text-white">0.00</span> s</div>
+                        <div class="mb-1">V_LAJU: <span id="hudVel" class="text-white">0.0</span> m/s</div>
+                        <div class="mb-2">A_ALTI: <span id="hudAlt" class="text-white">0.0</span> m</div>
+                        <div class="mt-2 pt-2 border-t border-slate-800 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981] inline-block"></span> Vektor CG
                         </div>
-                        <div class="flex items-center gap-1 sm:gap-2">
-                            <span class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500 inline-block"></span> CP (Tekanan)
+                        <div class="mt-1 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_5px_#ef4444] inline-block"></span> Vektor CP
                         </div>
-                        <div id="stabilityWarn" class="text-red-400 font-bold mt-1 animate-pulse hidden">AMARAN: TIDAK STABIL!</div>
+                        <div id="stabilityWarn" class="text-red-500 font-bold mt-2 bg-red-950/50 px-1 border border-red-500/50 animate-pulse hidden text-center">! KRITIKAL: TIDAK STABIL !</div>
                     </div>
 
                     <!-- BLOK PELANCARAN & BLUEPRINT (KANAN ATAS) -->
-                    <div class="absolute top-2 right-2 w-[140px] sm:w-[220px] bg-black/70 backdrop-blur-md p-2 sm:p-3 rounded-lg border border-slate-500/50 z-20 shadow-xl flex flex-col gap-2">
-                        <div class="flex justify-between items-center border-b border-slate-600 pb-1">
-                            <span class="text-[10px] sm:text-xs font-bold text-cyan-300">Kestabilan</span>
-                            <span id="blueprintStatus" class="text-[10px] sm:text-xs"></span>
+                    <div class="absolute top-3 right-3 w-[150px] sm:w-[240px] bg-slate-950/80 backdrop-blur-md p-3 rounded border border-cyan-500/50 z-20 shadow-[0_0_20px_rgba(6,182,212,0.15)] flex flex-col gap-3">
+                        <div class="flex justify-between items-center border-b border-cyan-900 pb-2">
+                            <span class="text-[10px] sm:text-xs font-bold text-cyan-400 tracking-wider">DIAGNOSTIK</span>
+                            <span id="blueprintStatus" class="text-[10px] sm:text-xs telemetry-font uppercase"></span>
                         </div>
-                        <canvas id="blueprintCanvas" height="70" class="w-full bg-slate-900 rounded border border-slate-600 shadow-inner"></canvas>
-                        <button id="launchBtn" class="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-[11px] sm:text-sm font-bold rounded shadow-lg transform transition-all active:scale-95 cursor-pointer">
-                            🚀 LEPAS ROKET!
+                        <canvas id="blueprintCanvas" height="70" class="w-full rounded border shadow-inner"></canvas>
+                        <button id="launchBtn" class="w-full py-3 mt-1 text-[11px] sm:text-sm font-bold flex items-center justify-center gap-2">
+                            <span class="text-lg">☢️</span> MULA JUJUKAN
                         </button>
                     </div>
                 </div>
 
                 <div class="radar-container" id="radarContainer">
                     <canvas id="radarCanvas"></canvas>
-                    <div class="absolute top-1 left-2 text-xs font-bold text-emerald-300">RADAR PANDANGAN ATAS</div>
+                    <div class="absolute top-2 left-3 text-[10px] tracking-widest font-bold text-emerald-400/80 bg-slate-900/60 px-2 py-1 rounded border border-emerald-900/50">RADAR Z-PAKSI</div>
                 </div>
                 
-                <div class="glass-panel p-4 rounded-xl text-center grid grid-cols-3 gap-2">
-                    <div>
-                        <p class="text-xs text-slate-400">Sasaran Z-X</p>
-                        <p id="targetDispUI" class="text-lg font-bold text-white">60.0 m</p>
+                <!-- HUD KEPUTUSAN -->
+                <div class="glass-panel p-5 rounded-xl text-center grid grid-cols-3 gap-4">
+                    <div class="bg-slate-900/60 p-3 rounded border border-slate-700/50 shadow-inner">
+                        <p class="text-[10px] sm:text-xs text-cyan-500/70 tracking-widest uppercase mb-1">Objektif (M)</p>
+                        <p id="targetDispUI" class="text-xl sm:text-2xl font-bold text-white telemetry-font text-glow-cyan">60.0</p>
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-400">Jarak Tiba</p>
-                        <p id="resultDist" class="text-lg font-bold text-blue-400">0.0 m</p>
+                    <div class="bg-slate-900/60 p-3 rounded border border-blue-900/50 shadow-inner">
+                        <p class="text-[10px] sm:text-xs text-blue-400/70 tracking-widest uppercase mb-1">Koordinat Tiba</p>
+                        <p id="resultDist" class="text-xl sm:text-2xl font-bold text-blue-400 telemetry-font">0.00</p>
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-400">Ralat (Meleset)</p>
-                        <p id="resultError" class="text-lg font-bold text-red-400">0.0 cm</p>
+                    <div class="bg-slate-900/60 p-3 rounded border border-red-900/50 shadow-inner relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-30"></div>
+                        <p class="text-[10px] sm:text-xs text-red-400/70 tracking-widest uppercase mb-1">Varian Ralat</p>
+                        <p id="resultError" class="text-xl sm:text-2xl font-bold text-red-400 telemetry-font text-glow-red">0.0 cm</p>
                     </div>
                 </div>
 
-                <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-2">🤖 AI Analisis & Nasihat</h3>
-                    <p id="aiFeedback" class="text-sm text-yellow-400">Sistem sedia. Tetapkan parameter dan lancar.</p>
+                <!-- AI ANALISIS -->
+                <div class="p-4 bg-slate-950/80 rounded-xl border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.05)] relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                    <h3 class="text-xs font-bold text-amber-500/80 mb-2 uppercase tracking-widest flex items-center gap-2">
+                        <span class="animate-pulse">▪</span> Laporan Logik AI
+                    </h3>
+                    <p id="aiFeedback" class="text-sm text-amber-400 telemetry-font leading-relaxed">Sistem bersedia. Menunggu input parameter operasi.</p>
                 </div>
 
-                <div class="glass-panel p-4 rounded-xl mt-2">
-                    <div class="flex justify-between items-center mb-4 flex-col sm:flex-row gap-3">
-                        <h3 id="lbTitle" class="text-lg font-bold text-amber-400 flex items-center gap-2">🏆 Carta Top 10 (Kategori: 60m)</h3>
-                        <div class="flex flex-col sm:flex-row gap-2 text-sm w-full sm:w-auto">
-                            <span id="playerNameDisp" class="px-3 py-2 sm:py-1 bg-slate-800 border border-slate-600 rounded text-slate-400 flex-1 sm:w-auto cursor-not-allowed flex items-center justify-center">Sila Log Masuk DELIMa</span>
-                            <button id="saveScoreBtn" class="px-3 py-2 sm:py-1 bg-amber-600 hover:bg-amber-500 rounded font-bold text-white transition-colors disabled:opacity-50" disabled>Simpan Skor</button>
+                <!-- LEADERBOARD -->
+                <div class="glass-panel p-5 rounded-xl mt-1">
+                    <div class="flex justify-between items-center mb-5 flex-col sm:flex-row gap-4">
+                        <h3 id="lbTitle" class="text-lg font-bold text-amber-400 flex items-center gap-2 tracking-widest uppercase text-glow-amber">
+                            🏆 PANGKALAN DATA (60m)
+                        </h3>
+                        <div class="flex flex-col sm:flex-row gap-3 text-sm w-full sm:w-auto">
+                            <span id="playerNameDisp" class="px-4 py-2 bg-slate-900/80 border border-slate-700 rounded text-slate-500 flex-1 sm:w-auto flex items-center justify-center telemetry-font text-xs">Akses Dilarang</span>
+                            <button id="saveScoreBtn" class="px-5 py-2 bg-amber-600/20 hover:bg-amber-500/30 border border-amber-500 text-amber-400 rounded font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-wider text-xs shadow-[0_0_10px_rgba(245,158,11,0.2)]" disabled>
+                                Muat Naik Data
+                            </button>
                         </div>
                     </div>
-                    <div class="w-full overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-300">
-                            <thead class="text-xs text-slate-400 uppercase bg-slate-800/50">
+                    <div class="w-full overflow-x-auto rounded border border-slate-800">
+                        <table class="w-full text-left text-sm text-slate-300 font-sans">
+                            <thead class="text-xs text-cyan-500/70 uppercase bg-slate-950 tracking-wider">
                                 <tr>
-                                    <th class="px-4 py-2">Kedudukan</th>
-                                    <th class="px-4 py-2">Nama</th>
-                                    <th class="px-4 py-2">Jarak Sebenar</th>
-                                    <th class="px-4 py-2 text-center">Percubaan</th>
-                                    <th class="px-4 py-2 text-right">Ralat (cm)</th>
+                                    <th class="px-4 py-3 border-b border-slate-800">Rank</th>
+                                    <th class="px-4 py-3 border-b border-slate-800">Operatif</th>
+                                    <th class="px-4 py-3 border-b border-slate-800">Jarak (M)</th>
+                                    <th class="px-4 py-3 border-b border-slate-800 text-center">Iterasi</th>
+                                    <th class="px-4 py-3 border-b border-slate-800 text-right">Ralat (cm)</th>
                                 </tr>
                             </thead>
-                            <tbody id="leaderboardBody">
-                                <tr><td colspan="5" class="text-center py-4 text-slate-500">Memuatkan sistem...</td></tr>
+                            <tbody id="leaderboardBody" class="telemetry-font text-sm">
+                                <tr><td colspan="5" class="text-center py-6 text-slate-600 tracking-widest uppercase">Mewujudkan sambungan rangkaian...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -289,6 +421,7 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT MUST REMAIN EXACTLY THE SAME -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -308,7 +441,7 @@
         window.showCustomMsg = function(msg, isError = false) {
             const toast = document.getElementById('toastMsg');
             toast.innerText = msg;
-            toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-xl font-bold z-50 transition-all duration-300 ${isError ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'}`;
+            toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded shadow-[0_0_20px_rgba(6,182,212,0.4)] font-bold z-50 transition-all duration-300 uppercase tracking-wider text-sm telemetry-font ${isError ? 'bg-red-950 border border-red-500 text-red-400' : 'bg-slate-900 border border-cyan-500 text-cyan-400'}`;
             toast.classList.remove('translate-y-[-100%]', 'opacity-0');
             setTimeout(() => {
                 toast.classList.add('translate-y-[-100%]', 'opacity-0');
@@ -357,14 +490,16 @@
                         document.getElementById('userEmail').innerText = isAdmin ? '👑 ADMIN (Cg. Jabdi)' : user.displayName;
                         
                         playerNameDisp.innerText = user.displayName;
-                        playerNameDisp.classList.replace('text-slate-400', 'text-white');
+                        playerNameDisp.classList.replace('text-slate-500', 'text-cyan-300');
+                        playerNameDisp.classList.replace('bg-slate-900/80', 'bg-slate-800/80');
+                        playerNameDisp.classList.replace('border-slate-700', 'border-cyan-700');
                         saveBtn.disabled = false;
                         
                         loadLeaderboard();
                     } else {
                         // Jika e-mel peribadi (bukan DELIMa), tendang keluar automatik
                         signOut(auth).then(() => {
-                            showCustomMsg("Hanya e-mel rasmi DELIMa KPM dibenarkan!", true);
+                            showCustomMsg("Akses ditolak: Hanya e-mel rasmi DELIMa dibenarkan!", true);
                         });
                     }
                 } else {
@@ -375,8 +510,10 @@
                     userInfo.classList.add('hidden');
                     userInfo.classList.remove('flex');
                     
-                    playerNameDisp.innerText = "Sila Log Masuk DELIMa";
-                    playerNameDisp.classList.replace('text-white', 'text-slate-400');
+                    playerNameDisp.innerText = "Akses Dilarang";
+                    playerNameDisp.classList.replace('text-cyan-300', 'text-slate-500');
+                    playerNameDisp.classList.replace('bg-slate-800/80', 'bg-slate-900/80');
+                    playerNameDisp.classList.replace('border-cyan-700', 'border-slate-700');
                     saveBtn.disabled = true;
                     
                     // Log masuk secara awanama (hanya untuk membolehkan Firebase membaca carta)
@@ -399,50 +536,50 @@
         document.getElementById('loginBtn').addEventListener('click', () => {
             signInWithPopup(auth, provider).catch(e => {
                 console.error("Gagal log masuk:", e);
-                showCustomMsg("Ralat log masuk. Sila cuba lagi.", true);
+                showCustomMsg("Ralat sistem akses. Sila cuba lagi.", true);
             });
         });
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
             signOut(auth).then(() => {
-                showCustomMsg("Berjaya log keluar.");
+                showCustomMsg("Sambungan ditamatkan.");
             });
         });
 
         // Pemilihan Mod
         document.getElementById('btnLatihan').addEventListener('click', () => {
             currentMode = 'latihan';
-            document.getElementById('btnLatihan').className = "flex-1 py-2 bg-blue-600 text-white font-bold rounded-md transition-colors text-sm shadow-lg";
-            document.getElementById('btnPertandingan').className = "flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm";
+            document.getElementById('btnLatihan').className = "flex-1 py-3 bg-blue-600 text-white font-bold rounded transition-colors text-sm shadow-lg";
+            document.getElementById('btnPertandingan').className = "flex-1 py-3 bg-slate-700 hover:bg-slate-800 text-slate-400 font-bold rounded transition-colors text-sm";
             document.getElementById('saveScoreBtn').disabled = true;
-            document.getElementById('saveScoreBtn').innerText = "Skor (Hanya Pertandingan)";
+            document.getElementById('saveScoreBtn').innerText = "Data Terkunci";
             
             // Reset Keputusan UI
             lastLaunchResult = null;
-            document.getElementById('resultDist').innerText = "0.0 m";
+            document.getElementById('resultDist').innerText = "0.00";
             document.getElementById('resultError').innerText = "0.0 cm";
-            document.getElementById('aiFeedback').innerHTML = "Sistem sedia. Tetapkan parameter dan lancar.";
-            document.getElementById('aiFeedback').className = "text-sm text-yellow-400";
+            document.getElementById('aiFeedback').innerHTML = "Mod Latihan aktif. Menganalisis tanpa rintangan angin.";
+            document.getElementById('aiFeedback').className = "text-sm text-cyan-400 telemetry-font leading-relaxed";
             
-            showCustomMsg("Mod Latihan: Tiada rekod, angin dihentikan.");
+            showCustomMsg("Mod Latihan: Persekitaran vakum separa diaktifkan.");
         });
 
         document.getElementById('btnPertandingan').addEventListener('click', () => {
             currentMode = 'pertandingan';
             competitionAttempts = 0; // Reset percubaan setiap kali masuk mod pertandingan baru
-            document.getElementById('btnPertandingan').className = "flex-1 py-2 bg-amber-600 text-white font-bold rounded-md transition-colors text-sm shadow-lg";
-            document.getElementById('btnLatihan').className = "flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-400 font-bold rounded-md transition-colors text-sm";
+            document.getElementById('btnPertandingan').className = "flex-1 py-3 bg-amber-600 text-white font-bold rounded transition-colors text-sm shadow-lg";
+            document.getElementById('btnLatihan').className = "flex-1 py-3 bg-slate-700 hover:bg-slate-800 text-slate-400 font-bold rounded transition-colors text-sm";
             document.getElementById('saveScoreBtn').disabled = false;
-            document.getElementById('saveScoreBtn').innerText = "Simpan Skor";
+            document.getElementById('saveScoreBtn').innerText = "Muat Naik Data";
             
             // Reset Keputusan UI
             lastLaunchResult = null;
-            document.getElementById('resultDist').innerText = "0.0 m";
+            document.getElementById('resultDist').innerText = "0.00";
             document.getElementById('resultError').innerText = "0.0 cm";
-            document.getElementById('aiFeedback').innerHTML = "Sistem sedia. Tetapkan parameter dan lancar.";
-            document.getElementById('aiFeedback').className = "text-sm text-yellow-400";
+            document.getElementById('aiFeedback').innerHTML = "Mod Pertandingan aktif. Vektor angin diaktifkan.";
+            document.getElementById('aiFeedback').className = "text-sm text-amber-400 telemetry-font leading-relaxed";
             
-            showCustomMsg("Mod Pertandingan Aktif! Angin berfungsi & percubaan direkod.");
+            showCustomMsg("Amaran: Anomali cuaca dikesan. Mod Pertandingan sedia.");
         });
 
         // Fungsi Padam Rekod (Khusus Admin)
@@ -451,15 +588,15 @@
             // Padam rekod terus dari pangkalan data Firestore
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', docId));
-                showCustomMsg("Skor dipadam oleh Admin!");
+                showCustomMsg("Rekod dipadam dari pangkalan data utama.");
             } catch(e) {
                 console.error("Gagal padam:", e);
-                showCustomMsg("Gagal memadam skor (Periksa Rules Firestore).", true);
+                showCustomMsg("Ralat pelayan. Gagal memadam.", true);
             }
         };
 
         function updateLeaderboardUI() {
-            document.getElementById('lbTitle').innerHTML = `🏆 Carta Top 10 (Kategori: ${currentTarget}m)`;
+            document.getElementById('lbTitle').innerHTML = `🏆 PANGKALAN DATA (${currentTarget}M)`;
             if (isFirebaseActive) loadLeaderboard();
             else renderLeaderboardLocal();
         }
@@ -500,34 +637,34 @@
             const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = '';
             if (scores.length === 0) {
-                let modeText = isFirebaseActive ? "" : "(Mod Offline)";
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Belum ada rekod bagi jarak ${currentTarget}m. ${modeText}</td></tr>`;
+                let modeText = isFirebaseActive ? "" : "[Rangkaian Tempatan]";
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-600 tracking-widest uppercase">Tiada rekod bagi parameter ${currentTarget}m. ${modeText}</td></tr>`;
                 return;
             }
             scores.forEach((s, index) => {
-                let badge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
+                let badge = index === 0 ? '<span class="text-yellow-400">01</span>' : index === 1 ? '<span class="text-slate-300">02</span>' : index === 2 ? '<span class="text-amber-600">03</span>' : `0${index + 1}`.slice(-2);
                 let errorInCm = s.errorDist * 100;
                 
-                let adminDeleteBtn = isAdmin ? `<button onclick="deleteScore('${s.id}')" class="ml-2 bg-red-600/80 hover:bg-red-500 text-white text-[10px] px-2 py-0.5 rounded cursor-pointer" title="Padam Rekod">Padam</button>` : '';
+                let adminDeleteBtn = isAdmin ? `<button onclick="deleteScore('${s.id}')" class="ml-3 bg-red-950 border border-red-500 hover:bg-red-900 text-red-400 text-[10px] px-2 py-0.5 rounded cursor-pointer tracking-wider" title="Padam Rekod">DEL</button>` : '';
 
-                tbody.innerHTML += `<tr class="border-b border-slate-700/50">
-                    <td class="px-4 py-2 font-bold">${badge}</td>
-                    <td class="px-4 py-2 font-semibold text-blue-300 flex items-center">${s.userName} ${adminDeleteBtn}</td>
-                    <td class="px-4 py-2">${s.actualDist.toFixed(2)} m</td>
-                    <td class="px-4 py-2 text-center text-indigo-300 font-bold">${s.attempts || 1}</td>
-                    <td class="px-4 py-2 text-right text-amber-400 font-mono">${errorInCm.toFixed(1)} cm</td>
+                tbody.innerHTML += `<tr class="border-b border-slate-800/50 hover:bg-slate-900/50 transition">
+                    <td class="px-4 py-3 font-bold">${badge}</td>
+                    <td class="px-4 py-3 font-semibold text-cyan-300 flex items-center font-sans tracking-wide">${s.userName} ${adminDeleteBtn}</td>
+                    <td class="px-4 py-3 text-emerald-400">${s.actualDist.toFixed(2)}</td>
+                    <td class="px-4 py-3 text-center text-indigo-400">${s.attempts || 1}</td>
+                    <td class="px-4 py-3 text-right text-red-400">${errorInCm.toFixed(1)} cm</td>
                 </tr>`;
             });
         }
 
         const saveBtn = document.getElementById('saveScoreBtn');
         saveBtn.addEventListener('click', async () => {
-            if (currentMode !== 'pertandingan') return showCustomMsg("Sila tukar ke Mod Pertandingan dahulu!", true);
-            if (!currentUser || !currentUser.email) return showCustomMsg("Sila log masuk menggunakan DELIMa!", true);
-            if (!lastLaunchResult) return showCustomMsg("Sila lancarkan roket dan dapatkan skor dahulu!", true);
+            if (currentMode !== 'pertandingan') return showCustomMsg("Tukar kepada Mod Pertandingan dahulu.", true);
+            if (!currentUser || !currentUser.email) return showCustomMsg("Akses pengesahan diperlukan.", true);
+            if (!lastLaunchResult) return showCustomMsg("Tiada data simulasi untuk dimuat naik.", true);
 
             saveBtn.disabled = true;
-            saveBtn.innerText = "Menyimpan...";
+            saveBtn.innerText = "Memproses...";
 
             const newScore = {
                 userName: currentUser.displayName,
@@ -544,13 +681,13 @@
                 const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
                 await addDoc(lbRef, newScore);
                 lastLaunchResult = null;
-                showCustomMsg("Skor berjaya dimuat naik!");
+                showCustomMsg("Data berjaya disegerakkan ke pangkalan utama.");
             } catch (err) {
                 console.error("Gagal simpan awan:", err);
-                showCustomMsg("Ralat pangkalan data. Gagal menyimpan.", true);
+                showCustomMsg("Ralat integriti pangkalan data.", true);
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.innerText = "Simpan Skor";
+                saveBtn.innerText = "Muat Naik Data";
             }
         });
 
@@ -575,14 +712,14 @@
         }
         ['targetDist','water','psi','angle','yaw','weight','clay','finLen','finWid','nozzleDia','rocketLen'].forEach(id => syncInputs(id, id+'Input'));
         
-        document.getElementById('rail').addEventListener('input', e => { document.getElementById('railDisp').innerText = e.target.value; });
+        document.getElementById('rail').addEventListener('input', e => { document.getElementById('railDisp').innerText = parseFloat(e.target.value).toFixed(1); });
         document.getElementById('parachute').addEventListener('input', e => { document.getElementById('paraDisp').innerText = e.target.value; });
         
         // Mod angin interaktif (Batal rawak jika pengguna set sendiri)
         document.getElementById('wind').addEventListener('input', e => { 
             const ms = parseFloat(e.target.value);
             const kmh = ms * 3.6;
-            document.getElementById('windDisp').innerText = ms.toFixed(1) + " m/s (" + kmh.toFixed(1) + " km/j)"; 
+            document.getElementById('windDisp').innerText = ms.toFixed(1) + " m/s"; 
             userSetWind = true; 
         });
         document.getElementById('windDir').addEventListener('change', () => { 
@@ -636,74 +773,81 @@
 
             bpCtx.clearRect(0,0,w,h);
 
-            // Lukis Roket (Muncung ke Kanan)
+            // Lukis Roket (Muncung ke Kanan) Sci-Fi Wireframe style
             const tailX = w * 0.2;
             const noseX = w * 0.8;
             const length = noseX - tailX;
             const midY = h / 2;
 
             // Badan Botol
-            bpCtx.fillStyle = '#cbd5e1'; // Kelabu
-            bpCtx.fillRect(tailX, midY - 15, length * 0.8, 30);
+            bpCtx.fillStyle = 'rgba(14, 165, 233, 0.2)'; 
+            bpCtx.strokeStyle = '#0ea5e9'; bpCtx.lineWidth = 1;
+            bpCtx.fillRect(tailX, midY - 12, length * 0.8, 24);
+            bpCtx.strokeRect(tailX, midY - 12, length * 0.8, 24);
             
             // Hidung (Nose Cone)
-            bpCtx.fillStyle = '#ef4444'; // Merah
+            bpCtx.fillStyle = 'rgba(16, 185, 129, 0.2)'; 
+            bpCtx.strokeStyle = '#10b981';
             bpCtx.beginPath();
-            bpCtx.moveTo(tailX + length * 0.8, midY - 15);
+            bpCtx.moveTo(tailX + length * 0.8, midY - 12);
             bpCtx.lineTo(noseX, midY);
-            bpCtx.lineTo(tailX + length * 0.8, midY + 15);
-            bpCtx.fill();
+            bpCtx.lineTo(tailX + length * 0.8, midY + 12);
+            bpCtx.closePath();
+            bpCtx.fill(); bpCtx.stroke();
 
             // Tanah Liat (Pemberat Hidung)
             if(clayMass > 0) {
-                bpCtx.fillStyle = '#facc15'; // Kuning
+                bpCtx.fillStyle = '#f59e0b'; // Kuning Sci-fi
                 bpCtx.beginPath();
-                const clayVisualSize = Math.min(15, 3 + (clayMass * 100)); // Dinamik ikut berat
+                const clayVisualSize = Math.min(12, 3 + (clayMass * 100)); // Dinamik ikut berat
                 bpCtx.arc(noseX - 5, midY, clayVisualSize, 0, Math.PI*2);
                 bpCtx.fill();
             }
 
             // Sirip (Fins)
             const finLenVisual = (fLen / 20) * (length * 0.3); // Skala visual
-            const finWidVisual = (fWid / 20) * 30;
-            bpCtx.fillStyle = '#3b82f6'; // Biru
+            const finWidVisual = (fWid / 20) * 25;
+            bpCtx.fillStyle = 'rgba(56, 189, 248, 0.3)'; 
+            bpCtx.strokeStyle = '#38bdf8';
             
             // Sirip Atas
             bpCtx.beginPath();
-            bpCtx.moveTo(tailX + finLenVisual, midY - 15);
-            bpCtx.lineTo(tailX, midY - 15 - finWidVisual);
-            bpCtx.lineTo(tailX, midY - 15);
-            bpCtx.fill();
+            bpCtx.moveTo(tailX + finLenVisual, midY - 12);
+            bpCtx.lineTo(tailX, midY - 12 - finWidVisual);
+            bpCtx.lineTo(tailX, midY - 12);
+            bpCtx.closePath();
+            bpCtx.fill(); bpCtx.stroke();
             
             // Sirip Bawah
             bpCtx.beginPath();
-            bpCtx.moveTo(tailX + finLenVisual, midY + 15);
-            bpCtx.lineTo(tailX, midY + 15 + finWidVisual);
-            bpCtx.lineTo(tailX, midY + 15);
-            bpCtx.fill();
+            bpCtx.moveTo(tailX + finLenVisual, midY + 12);
+            bpCtx.lineTo(tailX, midY + 12 + finWidVisual);
+            bpCtx.lineTo(tailX, midY + 12);
+            bpCtx.closePath();
+            bpCtx.fill(); bpCtx.stroke();
 
             // Titik CG dan CP (skala berpandukan panjang roket sebenar)
             const cgPx = tailX + (cgPos / rLenM) * length;
             const cpPx = tailX + (cpPos / rLenM) * length;
 
             // Garisan CG (Hijau)
-            bpCtx.strokeStyle = '#4ade80'; bpCtx.lineWidth = 2;
-            bpCtx.beginPath(); bpCtx.moveTo(cgPx, 10); bpCtx.lineTo(cgPx, h-10); bpCtx.stroke();
-            bpCtx.fillStyle = '#4ade80'; bpCtx.font = 'bold 10px Inter'; bpCtx.fillText("CG", cgPx - 6, 10);
+            bpCtx.strokeStyle = '#10b981'; bpCtx.lineWidth = 1;
+            bpCtx.beginPath(); bpCtx.moveTo(cgPx, 5); bpCtx.lineTo(cgPx, h-5); bpCtx.stroke();
+            bpCtx.fillStyle = '#10b981'; bpCtx.font = 'bold 9px JetBrains Mono'; bpCtx.fillText("CG", cgPx - 5, 10);
 
             // Garisan CP (Merah)
-            bpCtx.strokeStyle = '#f87171'; bpCtx.lineWidth = 2;
-            bpCtx.setLineDash([3, 2]);
-            bpCtx.beginPath(); bpCtx.moveTo(cpPx, 25); bpCtx.lineTo(cpPx, h-25); bpCtx.stroke();
+            bpCtx.strokeStyle = '#ef4444'; bpCtx.lineWidth = 1;
+            bpCtx.setLineDash([2, 2]);
+            bpCtx.beginPath(); bpCtx.moveTo(cpPx, 20); bpCtx.lineTo(cpPx, h-20); bpCtx.stroke();
             bpCtx.setLineDash([]);
-            bpCtx.fillStyle = '#f87171'; bpCtx.fillText("CP", cpPx - 6, h - 10);
+            bpCtx.fillStyle = '#ef4444'; bpCtx.fillText("CP", cpPx - 5, h - 5);
 
             // Update Teks Status
             const statText = document.getElementById('blueprintStatus');
             if (isStable) {
-                statText.innerHTML = "✅ <span class='text-emerald-400'>STABIL</span>";
+                statText.innerHTML = "STATUS: <span class='text-emerald-400 font-bold'>STABIL [OK]</span>";
             } else {
-                statText.innerHTML = "⚠️ <span class='text-red-400 animate-pulse'>TIDAK STABIL</span>";
+                statText.innerHTML = "STATUS: <span class='text-red-500 font-bold animate-pulse'>KRITIKAL [ERR]</span>";
             }
         }
 
@@ -731,7 +875,7 @@
             // Get Variables
             const target = parseFloat(document.getElementById('targetDistInput').value);
             currentTarget = target;
-            document.getElementById('targetDispUI').innerText = target.toFixed(1) + " m";
+            document.getElementById('targetDispUI').innerText = target.toFixed(1);
             
             const waterML = parseFloat(document.getElementById('waterInput').value);
             const psi = parseFloat(document.getElementById('psiInput').value);
@@ -846,8 +990,8 @@
             isAnimating = true;
             
             const btn = document.getElementById('launchBtn');
-            btn.disabled = true; btn.innerText = "Terbang...";
-            document.getElementById('resultDist').innerText = "0.0 m";
+            btn.disabled = true; btn.innerText = "SEDANG DILANCARKAN...";
+            document.getElementById('resultDist').innerText = "0.00";
             document.getElementById('resultError').innerText = "0.0 cm";
 
             function step() {
@@ -912,25 +1056,42 @@
             
             // SIM CANVAS (Side View)
             simCtx.clearRect(0,0, simW, simH);
-            simCtx.fillStyle = '#15803d';
+            
+            // Grid Lines (Sci-Fi feeling)
+            simCtx.strokeStyle = 'rgba(34, 211, 238, 0.05)';
+            simCtx.lineWidth = 1;
+            for(let i=0; i<simW; i+=20) { simCtx.beginPath(); simCtx.moveTo(i, 0); simCtx.lineTo(i, simH); simCtx.stroke(); }
+            for(let i=0; i<simH; i+=20) { simCtx.beginPath(); simCtx.moveTo(0, i); simCtx.lineTo(simW, i); simCtx.stroke(); }
+
+            // Ground
+            simCtx.fillStyle = 'rgba(2, 44, 34, 0.8)'; // Dark emerald ground
             simCtx.fillRect(0, simH - groundH, simW, groundH);
+            simCtx.strokeStyle = '#10b981';
+            simCtx.beginPath(); simCtx.moveTo(0, simH - groundH); simCtx.lineTo(simW, simH - groundH); simCtx.stroke();
             
             // Markers & Target
-            simCtx.fillStyle = 'rgba(255,255,255,0.7)';
-            simCtx.font = '10px Inter';
+            simCtx.fillStyle = 'rgba(52, 211, 153, 0.7)';
+            simCtx.font = '10px JetBrains Mono';
             for(let i=0; i<=120; i+=10) {
                 let px = i * pxPerMeter;
                 simCtx.fillRect(px, simH - groundH, 1, 5);
                 simCtx.fillText(i+'m', px-5, simH - groundH + 15);
             }
             const tx = currentTarget * pxPerMeter;
-            simCtx.fillStyle = 'rgba(239, 68, 68, 0.4)';
-            simCtx.fillRect(tx - 15, simH - groundH, 30, 5);
-            simCtx.fillStyle = '#ef4444';
-            simCtx.fillRect(tx, simH - groundH - 30, 2, 30);
             
-            // Side Path
-            simCtx.beginPath(); simCtx.strokeStyle = 'rgba(255,255,255,0.4)'; simCtx.setLineDash([3,3]);
+            // Sci-fi Target Laser
+            const grad = simCtx.createLinearGradient(0, simH-groundH-50, 0, simH-groundH);
+            grad.addColorStop(0, 'rgba(239, 68, 68, 0)');
+            grad.addColorStop(1, 'rgba(239, 68, 68, 0.6)');
+            simCtx.fillStyle = grad;
+            simCtx.fillRect(tx - 10, simH - groundH - 50, 20, 50);
+            
+            simCtx.fillStyle = '#ef4444';
+            simCtx.fillRect(tx - 15, simH - groundH, 30, 2);
+            simCtx.fillRect(tx, simH - groundH - 5, 2, 5);
+            
+            // Side Path (Cyan glow)
+            simCtx.beginPath(); simCtx.strokeStyle = 'rgba(34, 211, 238, 0.6)'; simCtx.setLineDash([4,4]);
             pathSide.forEach((p,i) => {
                 let px = p.x * pxPerMeter; let py = simH - groundH - (p.y * pxPerMeter);
                 if(i===0) simCtx.moveTo(px, py); else simCtx.lineTo(px, py);
@@ -945,39 +1106,50 @@
                 simCtx.translate(rx, ry);
                 simCtx.rotate(-rocket.angle);
                 
-                // Body
-                simCtx.fillStyle = '#cbd5e1'; simCtx.fillRect(-15, -4, 30, 8);
-                simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.moveTo(15,-4); simCtx.lineTo(22,0); simCtx.lineTo(15,4); simCtx.fill();
+                // Body (Sci-fi white/cyan)
+                simCtx.fillStyle = '#e2e8f0'; simCtx.fillRect(-15, -4, 30, 8);
+                simCtx.fillStyle = '#38bdf8'; simCtx.beginPath(); simCtx.moveTo(15,-4); simCtx.lineTo(22,0); simCtx.lineTo(15,4); simCtx.fill();
                 
-                // CG & CP Dots (Dipetakan kepada nisbah panjang sebenar roket)
+                // Flame
+                if (T < 0.2) {
+                    simCtx.fillStyle = '#f59e0b'; simCtx.beginPath(); simCtx.moveTo(-15,-3); simCtx.lineTo(-25,0); simCtx.lineTo(-15,3); simCtx.fill();
+                }
+
+                // CG & CP Dots
                 const cgPx = (rocket.cg / rocket.rLenM) * 30 - 15;
                 const cpPx = (rocket.cp / rocket.rLenM) * 30 - 15;
-                simCtx.fillStyle = '#22c55e'; simCtx.beginPath(); simCtx.arc(cgPx, 0, 3, 0, Math.PI*2); simCtx.fill(); // Green CG
-                simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.arc(cpPx, 0, 3, 0, Math.PI*2); simCtx.fill(); // Red CP
+                simCtx.fillStyle = '#10b981'; simCtx.beginPath(); simCtx.arc(cgPx, 0, 3, 0, Math.PI*2); simCtx.fill(); 
+                simCtx.fillStyle = '#ef4444'; simCtx.beginPath(); simCtx.arc(cpPx, 0, 3, 0, Math.PI*2); simCtx.fill();
 
                 simCtx.restore();
                 
                 if(rocket.paraDeployed) {
-                    simCtx.fillStyle = 'rgba(250, 204, 21, 0.8)';
-                    simCtx.beginPath(); simCtx.arc(rx, ry-20, 15, Math.PI, 0); simCtx.fill();
-                    simCtx.strokeStyle='#fff'; simCtx.beginPath(); simCtx.moveTo(rx-15,ry-20); simCtx.lineTo(rx,ry); simCtx.moveTo(rx+15,ry-20); simCtx.lineTo(rx,ry); simCtx.stroke();
+                    simCtx.fillStyle = 'rgba(251, 191, 36, 0.4)';
+                    simCtx.strokeStyle = '#fbbf24';
+                    simCtx.beginPath(); simCtx.arc(rx, ry-20, 15, Math.PI, 0); simCtx.fill(); simCtx.stroke();
+                    simCtx.strokeStyle='rgba(255,255,255,0.5)'; simCtx.beginPath(); simCtx.moveTo(rx-15,ry-20); simCtx.lineTo(rx,ry); simCtx.moveTo(rx+15,ry-20); simCtx.lineTo(rx,ry); simCtx.stroke();
                 }
             }
 
             // RADAR CANVAS (Top View)
             radarCtx.clearRect(0,0, radW, radH);
             const rCY = radH / 2;
+
+            // Radar scanline & grid
+            radarCtx.strokeStyle = 'rgba(16, 185, 129, 0.1)';
+            radarCtx.lineWidth = 1;
+            for(let i=0; i<radW; i+=20) { radarCtx.beginPath(); radarCtx.moveTo(i, 0); radarCtx.lineTo(i, radH); radarCtx.stroke(); }
             
             // Garisan Lurus (Target)
-            radarCtx.strokeStyle = 'rgba(255,255,255,0.2)'; radarCtx.beginPath(); radarCtx.moveTo(0, rCY); radarCtx.lineTo(radW, rCY); radarCtx.stroke();
+            radarCtx.strokeStyle = 'rgba(16, 185, 129, 0.3)'; radarCtx.beginPath(); radarCtx.moveTo(0, rCY); radarCtx.lineTo(radW, rCY); radarCtx.stroke();
             
             // Garisan Sasar (Yaw Aim)
             let currentYaw = document.getElementById('yawInput') ? parseFloat(document.getElementById('yawInput').value) * (Math.PI/180) : 0;
             if (rocket) currentYaw = rocket.yaw;
             const aimX = radW * Math.cos(currentYaw);
             const aimZ = radW * Math.sin(currentYaw);
-            radarCtx.strokeStyle = 'rgba(167, 139, 250, 0.4)'; // Ungu untuk arah muncung
-            radarCtx.setLineDash([5, 5]);
+            radarCtx.strokeStyle = 'rgba(167, 139, 250, 0.6)'; // Ungu untuk arah muncung
+            radarCtx.setLineDash([4, 4]);
             radarCtx.beginPath(); radarCtx.moveTo(0, rCY); radarCtx.lineTo(aimX, rCY + aimZ); radarCtx.stroke();
             radarCtx.setLineDash([]);
 
@@ -985,6 +1157,7 @@
             radarCtx.strokeStyle = '#34d399'; radarCtx.beginPath(); radarCtx.arc(rTx, rCY, 5, 0, Math.PI*2); radarCtx.stroke();
             radarCtx.beginPath(); radarCtx.arc(rTx, rCY, 15, 0, Math.PI*2); radarCtx.stroke();
             
+            // Radar Path
             radarCtx.beginPath(); radarCtx.strokeStyle = '#facc15'; radarCtx.lineWidth = 2;
             pathRadar.forEach((p,i) => {
                 let px = p.x * pxPerMeter; let py = rCY + (p.z * pxPerMeter);
@@ -993,49 +1166,46 @@
             if(rocket) radarCtx.lineTo(rocket.x * pxPerMeter, rCY + (rocket.z * pxPerMeter));
             radarCtx.stroke();
             
+            // Blip
             if(rocket) {
-                radarCtx.fillStyle = '#ef4444'; radarCtx.beginPath(); radarCtx.arc(rocket.x * pxPerMeter, rCY + (rocket.z * pxPerMeter), 3, 0, Math.PI*2); radarCtx.fill();
+                radarCtx.fillStyle = '#ef4444'; radarCtx.shadowBlur = 10; radarCtx.shadowColor = '#ef4444';
+                radarCtx.beginPath(); radarCtx.arc(rocket.x * pxPerMeter, rCY + (rocket.z * pxPerMeter), 3, 0, Math.PI*2); radarCtx.fill();
+                radarCtx.shadowBlur = 0;
             }
 
-            // Kompas & Arah Angin (Radar View)
+            // Kompas & Arah Angin (Radar View) Sci-Fi
             const cX = radW - 40;
             const cY = 40;
             
-            // Latar belakang kompas
-            radarCtx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+            radarCtx.fillStyle = 'rgba(2, 6, 23, 0.8)';
             radarCtx.beginPath(); radarCtx.arc(cX, cY, 25, 0, Math.PI*2); radarCtx.fill();
-            radarCtx.strokeStyle = 'rgba(52, 211, 153, 0.4)';
+            radarCtx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
             radarCtx.lineWidth = 1;
             radarCtx.stroke();
             
-            // Huruf U (Utara)
-            radarCtx.fillStyle = '#94a3b8';
-            radarCtx.font = 'bold 10px Inter';
-            radarCtx.fillText('U', cX - 4, cY - 14);
+            radarCtx.fillStyle = '#34d399';
+            radarCtx.font = 'bold 10px JetBrains Mono';
+            radarCtx.fillText('N', cX - 3, cY - 14);
             
-            // Jarum Utara (Kelabu Cerah)
-            radarCtx.strokeStyle = '#cbd5e1';
+            radarCtx.strokeStyle = 'rgba(255,255,255,0.4)';
             radarCtx.lineWidth = 2;
             radarCtx.beginPath();
             radarCtx.moveTo(cX, cY + 5); radarCtx.lineTo(cX, cY - 11);
             radarCtx.lineTo(cX - 3, cY - 6); radarCtx.moveTo(cX, cY - 11); radarCtx.lineTo(cX + 3, cY - 6);
             radarCtx.stroke();
             
-            // Jarum Angin (Merah) - Hanya muncul jika ada angin
             const wSpdUI = parseFloat(document.getElementById('wind').value);
             if (wSpdUI > 0) {
                 const wDirUI = parseFloat(document.getElementById('windDir').value);
-                const wAngle = (wDirUI - 90) * (Math.PI / 180); // Tukar sudut darjah ke radian kanvas
+                const wAngle = (wDirUI - 90) * (Math.PI / 180); 
                 
-                radarCtx.strokeStyle = '#ef4444'; // Merah
-                radarCtx.lineWidth = 2.5;
+                radarCtx.strokeStyle = '#ef4444';
+                radarCtx.lineWidth = 2;
                 const eX = cX + Math.cos(wAngle) * 18;
                 const eY = cY + Math.sin(wAngle) * 18;
                 
                 radarCtx.beginPath();
                 radarCtx.moveTo(cX, cY); radarCtx.lineTo(eX, eY);
-                
-                // Kepala anak panah arah angin
                 const headA1 = wAngle + 0.8 * Math.PI;
                 const headA2 = wAngle - 0.8 * Math.PI;
                 radarCtx.lineTo(eX + Math.cos(headA1) * 6, eY + Math.sin(headA1) * 6);
@@ -1048,13 +1218,13 @@
         function finishSim() {
             isAnimating = false;
             const btn = document.getElementById('launchBtn');
-            btn.disabled = false; btn.innerText = "🚀 LEPAS ROKET!";
+            btn.disabled = false; btn.innerHTML = "<span class='text-lg'>☢️</span> MULA JUJUKAN";
             
             const dist = Math.sqrt(rocket.x*rocket.x + rocket.z*rocket.z);
             const errMeters = Math.abs(dist - currentTarget);
             const errCm = errMeters * 100;
             
-            document.getElementById('resultDist').innerText = dist.toFixed(2) + " m";
+            document.getElementById('resultDist').innerText = dist.toFixed(2);
             document.getElementById('resultError').innerText = errCm.toFixed(1) + " cm";
             
             lastLaunchResult = { actualDist: dist, errorDist: errMeters };
@@ -1062,20 +1232,20 @@
             const aiText = document.getElementById('aiFeedback');
             
             if (rocket.deadWater > 0.05) {
-                aiText.innerHTML = `⚠️ AI Analisis (Fizik): Ralat Kritikal! Ruang udara mampat terlalu kecil. Botol kehabisan tekanan di tengah jalan dan memerangkap ${(rocket.deadWater * 1000).toFixed(0)} gram "Air Mati" sebagai beban fizikal. Kurangkan isipadu air!`;
-                aiText.className = "text-sm text-red-400 font-bold";
+                aiText.innerHTML = `[ AMARAN KRITIKAL ] Kegagalan Reaktor: Nisbah pemampatan tidak mencukupi. Teras memerangkap ${(rocket.deadWater * 1000).toFixed(0)}g bendalir sebagai beban mati. Sila kurangkan kuantiti air.`;
+                aiText.className = "text-sm text-red-400 font-bold telemetry-font leading-relaxed";
             } else if (!rocket.isStable) {
-                aiText.innerHTML = "AI Analisis: ROKET TIDAK STABIL! Tambah plastisin (tanah liat) di hidung untuk mengalihkan Pusat Graviti (CG) ke hadapan dan mengelakkan roket berpusing di udara.";
-                aiText.className = "text-sm text-red-400 font-bold";
+                aiText.innerHTML = "[ AMARAN LINTASAN ] ROKET HILANG KAWALAN DI UDARA! Anjakan Pusat Graviti (CG) ke belakang melepasi Pusat Tekanan (CP). Tambah pemberat hidung untuk stabilisasi orbit.";
+                aiText.className = "text-sm text-red-400 font-bold telemetry-font leading-relaxed";
             } else if (errMeters <= 2.0) {
-                aiText.innerHTML = "AI Analisis (Data Dunia Sebenar): Sempurna! Mengikut piawaian penerbangan sebenar (224g, 480ml, 60 PSI, Rail 0.8m), konfigurasi ini mencatat jarak ketepatan cemerlang. WRSimulator oleh Cg. Jabdi Lobah (SK Bikang)";
-                aiText.className = "text-sm text-emerald-400 font-bold";
+                aiText.innerHTML = "[ OBJEKTIF TERCAPAI ] Simulasi cemerlang! Trajektori sejajar dengan parameter piawaian penerbangan (224g/480ml/60PSI). WRSimulator V3 disahkan tepat.";
+                aiText.className = "text-sm text-emerald-400 font-bold telemetry-font leading-relaxed";
             } else if (dist < currentTarget) {
-                aiText.innerHTML = "AI Analisis: Roket jatuh terkurang jarak. Naikkan tekanan udara secara perlahan (cth: 62-65 PSI), ATAU kurangkan sedikit air kepada 450mL.";
-                aiText.className = "text-sm text-yellow-400";
+                aiText.innerHTML = "[ LAPORAN TRAJEKTORI ] Data unjuran: Roket jatuh terkurang jarak. Disyorkan peningkatan tekanan secara berperingkat (contoh: 62-65 PSI) atau pengurangan isipadu air.";
+                aiText.className = "text-sm text-amber-400 telemetry-font leading-relaxed";
             } else {
-                aiText.innerHTML = "AI Analisis: Roket terlajak melepasi sasaran! Kurangkan tekanan udara (contoh: 55-58 PSI), ATAU rendahkan sudut pelancaran kepada 40°.";
-                aiText.className = "text-sm text-yellow-400";
+                aiText.innerHTML = "[ LAPORAN TRAJEKTORI ] Data unjuran: Roket melepasi sasaran secara berlebihan. Kurangkan tekanan tujahan atau rendahkan sudut pelancaran di bawah 45°.";
+                aiText.className = "text-sm text-amber-400 telemetry-font leading-relaxed";
             }
         }
 
