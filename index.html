@@ -729,6 +729,9 @@
         let groundH = 40;
         let pxPerMeter = 5;
         
+        let cameraOffsetX = 0;
+        let targetCameraOffset = 0;
+        
         let isAnimating = false;
         let animFrame;
         let rocket = null;
@@ -984,6 +987,13 @@
             pathRadar = [];
             isAnimating = true;
             
+            cameraOffsetX = 0;
+            if (angleDeg >= 87) {
+                targetCameraOffset = simW * 0.25;
+            } else {
+                targetCameraOffset = 0;
+            }
+            
             const btn = document.getElementById('launchBtn');
             btn.disabled = true; btn.innerText = "SEDANG DILANCARKAN...";
             document.getElementById('resultDist').innerText = "0.00";
@@ -991,6 +1001,8 @@
 
             function step() {
                 T += dT;
+                
+                cameraOffsetX += (targetCameraOffset - cameraOffsetX) * 0.05;
                 
                 const relVx = rocket.vx - windX;
                 const relVz = rocket.vz - windZ;
@@ -1059,22 +1071,25 @@
             // SIM CANVAS (Side View)
             simCtx.clearRect(0,0, simW, simH);
             
+            simCtx.save();
+            simCtx.translate(cameraOffsetX, 0);
+            
             // Grid Lines (Sci-Fi feeling)
             simCtx.strokeStyle = 'rgba(34, 211, 238, 0.05)';
             simCtx.lineWidth = 1;
-            for(let i=0; i<simW; i+=20) { simCtx.beginPath(); simCtx.moveTo(i, 0); simCtx.lineTo(i, simH); simCtx.stroke(); }
-            for(let i=0; i<simH; i+=20) { simCtx.beginPath(); simCtx.moveTo(0, i); simCtx.lineTo(simW, i); simCtx.stroke(); }
+            for(let i=-simW; i<simW*2; i+=20) { simCtx.beginPath(); simCtx.moveTo(i, 0); simCtx.lineTo(i, simH); simCtx.stroke(); }
+            for(let i=0; i<simH; i+=20) { simCtx.beginPath(); simCtx.moveTo(-simW, i); simCtx.lineTo(simW*2, i); simCtx.stroke(); }
 
             // Ground
             simCtx.fillStyle = 'rgba(2, 44, 34, 0.8)'; // Dark emerald ground
-            simCtx.fillRect(0, simH - groundH, simW, groundH);
+            simCtx.fillRect(-simW, simH - groundH, simW * 3, groundH);
             simCtx.strokeStyle = '#10b981';
-            simCtx.beginPath(); simCtx.moveTo(0, simH - groundH); simCtx.lineTo(simW, simH - groundH); simCtx.stroke();
+            simCtx.beginPath(); simCtx.moveTo(-simW, simH - groundH); simCtx.lineTo(simW * 2, simH - groundH); simCtx.stroke();
             
             // Markers & Target
             simCtx.fillStyle = 'rgba(52, 211, 153, 0.7)';
             simCtx.font = '10px JetBrains Mono';
-            for(let i=0; i<=120; i+=10) {
+            for(let i=-50; i<=150; i+=10) {
                 let px = i * pxPerMeter;
                 simCtx.fillRect(px, simH - groundH, 1, 5);
                 simCtx.fillText(i+'m', px-5, simH - groundH + 15);
@@ -1132,6 +1147,8 @@
                     simCtx.strokeStyle='rgba(255,255,255,0.5)'; simCtx.beginPath(); simCtx.moveTo(rx-15,ry-20); simCtx.lineTo(rx,ry); simCtx.moveTo(rx+15,ry-20); simCtx.lineTo(rx,ry); simCtx.stroke();
                 }
             }
+            
+            simCtx.restore();
 
             // RADAR CANVAS (Top View)
             radarCtx.clearRect(0,0, radW, radH);
