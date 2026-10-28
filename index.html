@@ -203,10 +203,13 @@
             
             <!-- PANEL KAWALAN KIRI -->
             <div class="glass-panel p-6 rounded-xl w-full lg:w-1/3 flex flex-col gap-4">
-                <h2 class="text-xl font-bold text-cyan-400 border-b border-cyan-900/50 pb-3 mb-2 tracking-widest uppercase flex items-center gap-2">
-                    <span class="inline-block w-2 h-5 bg-cyan-500 rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
-                    Parameter
-                </h2>
+                <div class="flex justify-between items-center border-b border-cyan-900/50 pb-3 mb-2">
+                    <h2 class="text-xl font-bold text-cyan-400 tracking-widest uppercase flex items-center gap-2">
+                        <span class="inline-block w-2 h-5 bg-cyan-500 rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
+                        Parameter
+                    </h2>
+                    <button id="resetBtn" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-[10px] font-bold text-slate-200 rounded border border-slate-500 shadow transition-colors cursor-pointer">🔄 RESET</button>
+                </div>
                 
                 <div class="group">
                     <label class="flex justify-between text-xs mb-1 text-cyan-200/70 uppercase tracking-wider">Sasaran Jarak (M)</label>
@@ -1269,6 +1272,48 @@
         }
 
         document.getElementById('launchBtn').addEventListener('click', startSimulation);
+
+        // Fungsi Reset Parameter
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (isAnimating) return showCustomMsg("Operasi reset ditolak ketika simulasi sedang berjalan!", true);
+
+            const defaults = {
+                'targetDist': 60, 'water': 480, 'psi': 60, 'angle': 45, 'yaw': 0,
+                'weight': 160, 'clay': 50, 'finLen': 10, 'finWid': 8, 'rocketLen': 55,
+                'nozzleDia': 9.0, 'rail': 1.0, 'parachute': 0, 'wind': 0, 'windDir': 90
+            };
+
+            for (const [id, val] of Object.entries(defaults)) {
+                const slider = document.getElementById(id);
+                if (slider) slider.value = val;
+                const input = document.getElementById(id + 'Input');
+                if (input) input.value = val;
+            }
+
+            // Reset paparan khas
+            currentTarget = 60;
+            document.getElementById('targetDispUI').innerText = "60.0";
+            document.getElementById('railDisp').innerText = "1.0";
+            document.getElementById('paraDisp').innerText = "0";
+            document.getElementById('windDisp').innerText = currentMode === 'latihan' ? "0.0 m/s" : "AUTO";
+            document.getElementById('resultDist').innerText = "0.00";
+            document.getElementById('resultError').innerText = "0.0 cm";
+            
+            const aiText = document.getElementById('aiFeedback');
+            aiText.innerHTML = "Sistem bersedia. Menunggu input parameter operasi.";
+            aiText.className = "text-sm text-amber-400 telemetry-font leading-relaxed";
+
+            // Reset Pembolehubah Simulasi
+            userSetWind = false;
+            cameraOffsetX = 0;
+            targetCameraOffset = 0;
+            rocket = null; // Buang roket lama dari kanvas
+
+            updateLeaderboardUI();
+            updateBlueprint();
+            renderScene();
+            showCustomMsg("Semua parameter dikembalikan ke asal.");
+        });
 
     </script>
 </body>
