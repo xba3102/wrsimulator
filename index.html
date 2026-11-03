@@ -361,7 +361,7 @@
                         </div>
                         <canvas id="blueprintCanvas" height="70" class="w-full rounded border shadow-inner"></canvas>
                         <button id="launchBtn" class="w-full py-3 mt-1 text-[11px] sm:text-sm font-bold flex items-center justify-center gap-2">
-                            <span class="text-lg">☢️</span> MULA JUJUKAN
+                            <span class="text-lg">☢️</span> LANCAR ROKET
                         </button>
                     </div>
                 </div>
@@ -1343,7 +1343,7 @@
         function finishSim() {
             isAnimating = false;
             const btn = document.getElementById('launchBtn');
-            btn.disabled = false; btn.innerHTML = "<span class='text-lg'>☢️</span> MULA JUJUKAN";
+            btn.disabled = false; btn.innerHTML = "<span class='text-lg'>☢️</span> LANCAR ROKET";
             
             const dist = Math.sqrt(rocket.x*rocket.x + rocket.z*rocket.z);
             const errMeters = Math.abs(dist - currentTarget);
