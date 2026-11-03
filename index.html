@@ -450,11 +450,14 @@
         let competitionAttempts = 0; // Kiraan pelancaran
         let lastLaunchResult = null; 
         let offlineScores = []; 
+        let currentTopScores = []; // Menyimpan semua rekod di latar belakang untuk pengiraan ranking
         let isFirebaseActive = false;
         let userSetWind = false; // Penanda untuk mod angin rawak atau tetap
 
         let serverWindSpd = 0;
         let serverWindDir = 90;
+        
+        let isAnimating = false; // Menyimpan status penerbangan
 
         // Custom Toast Function (Replaces alert)
         window.showCustomMsg = function(msg, isError = false) {
@@ -572,6 +575,8 @@
 
         // Pemilihan Mod
         document.getElementById('btnLatihan').addEventListener('click', () => {
+            if (isAnimating) return showCustomMsg("Tindakan dikunci semasa pelancaran roket!", true);
+            
             currentMode = 'latihan';
             document.getElementById('btnLatihan').className = "flex-1 py-3 bg-blue-600 text-white font-bold rounded transition-colors text-sm shadow-lg";
             document.getElementById('btnPertandingan').className = "flex-1 py-3 bg-slate-700 hover:bg-slate-800 text-slate-400 font-bold rounded transition-colors text-sm";
@@ -591,6 +596,8 @@
         });
 
         document.getElementById('btnPertandingan').addEventListener('click', () => {
+            if (isAnimating) return showCustomMsg("Tindakan dikunci semasa pelancaran roket!", true);
+
             currentMode = 'pertandingan';
             competitionAttempts = 0; // Reset percubaan setiap kali masuk mod pertandingan baru
             document.getElementById('btnPertandingan').className = "flex-1 py-3 bg-amber-600 text-white font-bold rounded transition-colors text-sm shadow-lg";
@@ -703,7 +710,10 @@
                     }
                     return diff;
                 });
-                renderLeaderboard(filteredScores.slice(0, 10));
+                
+                currentTopScores = filteredScores; // Simpan semua data untuk semakan ranking
+
+                renderLeaderboard(filteredScores.slice(0, 10)); // Papar 10 terbaik sahaja
             }, (error) => {
                 console.error("Gagal memuat turun data:", error);
                 isFirebaseActive = false;
@@ -714,6 +724,7 @@
         function renderLeaderboardLocal() {
             let filteredScores = offlineScores.filter(s => s.targetDist === currentTarget);
             filteredScores.sort((a, b) => a.errorDist - b.errorDist);
+            currentTopScores = filteredScores;
             renderLeaderboard(filteredScores.slice(0, 10));
         }
 
@@ -762,10 +773,31 @@
             };
 
             try {
+                // Kira Kedudukan (Rank) Semasa Pemain
+                let tempScores = [...currentTopScores, newScore];
+                tempScores.sort((a, b) => {
+                    let diff = a.errorDist - b.errorDist;
+                    if (Math.abs(diff) < 0.01) {
+                        return (a.attempts || 0) - (b.attempts || 0);
+                    }
+                    return diff;
+                });
+                
+                let rank = tempScores.indexOf(newScore) + 1; // Index bermula dari 0, tambah 1
+                let rankMsg = "";
+                
+                if (rank <= 10) {
+                    rankMsg = `Hebat! Anda berjaya menduduki Top 10 (Kedudukan ke-${rank}).`;
+                } else if (rank <= 100) {
+                    rankMsg = `Skor dimuat naik. Anda kini di kedudukan ke-${rank}.`;
+                } else {
+                    rankMsg = `Skor dimuat naik. Anda kini di kedudukan >100.`;
+                }
+
                 const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
                 await addDoc(lbRef, newScore);
                 lastLaunchResult = null;
-                showCustomMsg("Data berjaya disegerakkan ke pangkalan utama.");
+                showCustomMsg(rankMsg); // Papar status kedudukan pemain!
             } catch (err) {
                 console.error("Gagal simpan awan:", err);
                 showCustomMsg("Ralat integriti pangkalan data.", true);
@@ -825,7 +857,6 @@
         let cameraOffsetX = 0;
         let targetCameraOffset = 0;
         
-        let isAnimating = false;
         let animFrame;
         let rocket = null;
         let pathSide = [];
